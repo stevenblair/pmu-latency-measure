@@ -1,0 +1,86 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Ethernet AVB standards &mdash; XMOS AVB-DC Design Guide v documentation</title>
+
+    <link rel="stylesheet" href=".static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href=".static/globals.css"  type="text/css" />
+    <link rel="stylesheet" href=".static/ui.css" type="text/css" />
+    <link rel="stylesheet" href=".static/app.css"  type="text/css" />
+    <link rel="stylesheet" href=".static/mobile.css"  type="text/css" />
+    <link rel="stylesheet" href=".static/xde.css"
+    type="text/css" /><script type="text/javascript" src=".static/scripts.js"></script>
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src=".static/jquery.js"></script>
+    <script type="text/javascript" src=".static/underscore.js"></script>
+    <script type="text/javascript" src=".static/doctools.js"></script>
+    <link rel="top" title="XMOS AVB-DC Design Guide v documentation" href="index.html" />
+    <link rel="next" title="Hardware development platforms" href="page8.html" />
+    <link rel="prev" title="XMOS AVB-DC specification" href="page7.html" /> 
+  </head>
+  <body class="xde indented-content" onload="prepareContents();">  
+          <div id="body">
+             <div id="content">
+             <h1>Ethernet AVB standards</h1>
+
+             <div class='columns'>
+            
+  <p>Ethernet AVB consists of a collection of different standards that together allow audio and video to be streamed over Ethernet. The standards provide synchronized, uninterrupted streaming with multiple talkers and listeners on a switched network infrastructure.</p>
+<h2 class="topic" id="as"><span id="index-0"></span>802.1AS</h2>
+<div><p><em>802.1AS</em> defines a Precision Timing Protocol based on the <em>IEEE 1558v2</em> protocol. It allows every device connected to the network to share a common global clock. The protocol allows devices to have a synchronized view of this clock to within microseconds of each other, aiding media stream clock recovery to phase align audio clocks.</p>
+<p>The <a class="reference" href="http://standards.ieee.org/getieee802/download/802.1AS-2011.pdf"><span>IEEE 802.1AS-2011 standard document</span></a> is available to download free of charge via the IEEE Get Program.</p>
+</div><h2 class="topic" id="qav">802.1Qav</h2>
+<div><p><em>802.1Qav</em> defines a standard for buffering and forwarding of traffic through the network using particular flow control algorithms. It gives predictable latency control on media streams flowing through the network.</p>
+<p>The XMOS AVB solution implements the requirements for endpoints defined by <em>802.1Qav</em>. This is done by traffic flow control in the transmit arbiter of the Ethernet MAC component.</p>
+<p>The 802.1Qav specification is available as a section in the <a class="reference" href="http://standards.ieee.org/getieee802/download/802.1Q-2011.pdf"><span>IEEE 802.1Q-2011 standard document</span></a>  and is available to download free of charge via the IEEE Get Program.</p>
+</div><h2 class="topic" id="qat">802.1Qat</h2>
+<div><p><em>802.1Qat</em> defines a stream reservation protocol that provides end-to-end reservation of bandwidth across an AVB network.</p>
+<p>The 802.1Qat specification is available as a section in the <a class="reference" href="http://standards.ieee.org/getieee802/download/802.1Q-2011.pdf"><span>IEEE 802.1Q-2011 standard document</span></a>.</p>
+</div><h2 class="topic" id="iec-61883-6">IEC 61883-6</h2>
+<div><p><em>IEC 61883-6</em> defines an audio data format that is contained in <em>IEEE 1722</em> streams. The XMOS AVB solution uses <em>IEC 61883-6</em> to convey audio sample streams.</p>
+<p>The <a class="reference" href="http://webstore.iec.ch/webstore/webstore.nsf/ArtNum_PK/46793"><span>IEC 61883-6:2005 standard document</span></a> is available for purchase from the IEC website.</p>
+</div><h2 class="topic" id="ieee-1722">IEEE 1722</h2>
+<div><p><em>IEEE 1722</em> defines an encapsulation protocol to transport audio streams over Ethernet. It is complementary to the AVB standards and in particular allows timestamping of a stream based on the <em>802.1AS</em> global clock.</p>
+<p>The XMOS AVB solution handles both transmission and receipt of audio streams using <em>IEEE 1722</em>. In addition it can use the <em>802.1AS</em> timestamps to accurately recover the audio master clock from an input stream.</p>
+<p>The <a class="reference" href="http://standards.ieee.org/findstds/standard/1722-2011.html"><span>IEEE 1722-2011 standard document</span></a> is available for purchase from the IEEE website.</p>
+</div><h2 class="topic" id="ieee-1722-1">IEEE 1722.1</h2>
+<div><p><em>IEEE 1722.1</em> is a system control protocol, used for device discovery, connection management and enumeration and control of parameters exposed by the AVB endpoints.</p>
+<p>The <a class="reference" href="http://standards.ieee.org/findstds/standard/1722.1-2013.html"><span>IEEE 1722.1-2013 standard document</span></a> is available for purchase from the IEEE website.</p>
+</div>
+
+             </div>
+             </div>
+
+
+          </div>
+
+          <div>
+             <!--seealsos-->
+          </div><div id="local_seealso">
+             <h1>See Also</h1>
+             <ul class="iconmenu">
+             <li><a href="page0.html">Overview</a></li>
+             <li><a href="page7.html">XMOS AVB-DC specification</a></li>
+             <li><a href="page8.html">Hardware development platforms</a></li>
+             <li><a href="page4.html">System description</a></li>
+             <li><a href="page9.html">Programming guide</a></li>
+             <li><a href="page6.html">API Reference</a></li>
+             </ul>
+          </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>

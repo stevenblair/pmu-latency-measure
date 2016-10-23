@@ -1,0 +1,704 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>System description &mdash; XMOS AVB-DC Design Guide v documentation</title>
+
+    <link rel="stylesheet" href=".static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href=".static/globals.css"  type="text/css" />
+    <link rel="stylesheet" href=".static/ui.css" type="text/css" />
+    <link rel="stylesheet" href=".static/app.css"  type="text/css" />
+    <link rel="stylesheet" href=".static/mobile.css"  type="text/css" />
+    <link rel="stylesheet" href=".static/xde.css"
+    type="text/css" /><script type="text/javascript" src=".static/scripts.js"></script>
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src=".static/jquery.js"></script>
+    <script type="text/javascript" src=".static/underscore.js"></script>
+    <script type="text/javascript" src=".static/doctools.js"></script>
+    <link rel="top" title="XMOS AVB-DC Design Guide v documentation" href="index.html" />
+    <link rel="next" title="Programming guide" href="page9.html" />
+    <link rel="prev" title="Hardware development platforms" href="page8.html" /> 
+  </head>
+  <body class="xde indented-content" onload="prepareContents();">  
+          <div id="body">
+             <div id="content">
+             <h1>System description</h1>
+
+             <div class='columns'>
+            
+  <p>The following sections describe the system architecture of the XMOS
+AVB software platform.</p>
+<p>This software design guide assumes the reader is familiar with the XC
+language and XMOS XS1 devices.</p>
+<h2 class="topic" id="high-level-system-architecture">High level system architecture</h2>
+<div><p>An endpoint consists of five main interacting components:</p>
+<blockquote>
+<div><ul>
+<li>The Ethernet MAC</li>
+<li>The Precision Timing Protocol (PTP) engine</li>
+<li>Audio streaming components</li>
+<li>The media clock server</li>
+<li>Configuration and other application components</li>
+</ul>
+<p>The following diagram shows the overall structure of an XMOS AVB endpoint.</p>
+</div></blockquote>
+<img alt="_images/avb_architecture.png" class="align-center" src="_images/avb_architecture.png" />
+</div><h2 class="topic" id="ethernet-mac-component">Ethernet MAC component</h2>
+<div><p>The MAC component provides two-port Ethernet connectivity to the AVB-DC
+solution. To use the component, two Ethernet PHYs must be attached
+to the xCORE ports via MII.</p>
+<p>The XMOS Ethernet MAC component supports two features that are necessary to
+implement AVB standards with precise timing and quality constraints:</p>
+<blockquote>
+<div><ul>
+<li><em>Timestamping</em> - allows receipt and transmission of Ethernet frames to be timestamped with respect to a clock (for example a 100 MHz reference clock can provide a resolution of 10 ns).</li>
+<li><em>Time sensitive traffic shaping</em> - allows traffic bandwidth to be reserved and shaped on egress to provide a steady and guaranteed flow of outgoing media stream packets. The implementation provides flow control to satisfy the requirements of an AVB endpoint as specified in the IEEE <em>802.1Qav</em> standard.</li>
+</ul>
+</div></blockquote>
+<p>The two-port 100 Mbps component consists of seven logcial cores, each
+running at 50 MIPS or more, that must be run on the same tile. These logcial cores handle both the receipt and transmission of
+Ethernet frames. The MAC component can be linked via channels to other components/logcial cores in the system. Each link can set a filter to
+control which packets are conveyed to it via that channel.</p>
+<img alt="_images/dual-100-mac.png" class="align-center" src="_images/dual-100-mac.png" />
+<p>All configuration of the channel is managed by a client C/XC API, which
+configures and registers the filters. Details of the API used to
+configure MAC channels can be found in the <a class="reference" href="https://www.xmos.com/resources/xsoftip?component=module_ethernet"><span>Ethernet MAC component documentation</span></a>. This API is used for direct (layer-2) access to the
+MAC. For AVB applications it is more likely that interaction with the
+Ethernet stack will be via the main AVB API (see Section
+<a class="reference" href="page6.html#sec-avb-api"><span>AVB API</span></a>).</p>
+<h3 id="packet-routing">1722 packet routing</h3>
+<div><p>The AVB enabled Ethernet MAC also includes a <em>IEEE 1722</em> packet router
+that routes audio packets to the listener components in the system.
+It controls the routing by stream ID. This requires no configuration
+and is controlled implicitly via the AVB API described in Section
+<a class="reference" href="page6.html#sec-avb-api"><span>AVB API</span></a>.</p>
+</div></div><h2 class="topic" id="precision-timing-protocol-component"><span id="index-0"></span>Precision Timing Protocol component</h2>
+<div><p>The Precision Timing Protocol (PTP) component enables a system with a
+notion of global time on a network. The component implements the <em>IEEE
+802.1AS</em> protocol. It allows synchronization of the
+presentation and playback rate of media streams across a network.</p>
+<img alt="_images/ptp-crop.png" class="align-center" src="_images/ptp-crop.png" />
+<p>The timing component consists of two logcial cores. It connects to the Ethernet MAC component and provides channel ends for clients to query for timing information. The component interprets PTP packets from the MAC and maintains a notion of global time. The maintenance of global time requires no application interaction with the component.</p>
+<p>The PTP component can be configured at runtime to be a potential <em>PTP grandmaster</em> or a <em>PTP slave</em> only. If the component is configured as a grandmaster, it supplies a clock source to the network. If the network has several grandmasters, the potential grandmasters negotiate between themselves to select a single grandmaster. Once a single grandmaster is selected, all units on the network synchronize a global time from this source and the other grandmasters stop providing timing information. Depending on the intermediate network, this synchronization can be to sub-microsecond level resolution.</p>
+<p>Client tasks connect to the timing component via channels. The relationship between the local reference counter and global time is maintained across this channel, allowing a client to timestamp with a local timer very accurately and then convert it to global time, giving highly accurate global timestamps.</p>
+<p>Client tasks can communicate with the server using the API described
+in Section <a class="reference" href="page6.html#sec-ptp-api"><span>PTP client API</span></a>.</p>
+<blockquote>
+<div><ul>
+<li>The PTP system in the endpoint is self-configuring, it runs
+automatically and gives each endpoint an accurate notion of a global clock.</li>
+<li>The global clock is <em>not</em> the same as the audio word clock, although it can be used to derive it. An audio stream may be at a rate that is independent of the
+PTP clock but will contain timestamps that use the global PTP clock
+domain as a reference domain.</li>
+</ul>
+</div></blockquote>
+</div><h2 class="topic" id="audio-components">Audio components</h2>
+<div><h3 id="avb-streams-channels-talkers-and-listeners">AVB streams, channels, talkers and listeners</h3>
+<div><p>Audio is transported in streams of data, where each stream may have multiple
+channels. Endpoints producing streams are called <em>Talkers</em> and
+those receiving them are called <em>Listeners</em>. Each stream on the
+network has a unique 64-bit stream ID.</p>
+<p id="index-1">A single endpoint can be a Talker, a Listener or both. In general each
+endpoint will have a number of <em>sinks</em> with the capacity to receive
+a number of incoming streams and a number of <em>sources</em> with the
+capacity to transmit a number of streams.</p>
+<p>Routing is done using layer 2 Ethernet addresses. Each stream is sent from a particular source MAC address to a particular
+destination MAC address. The destination MAC address is a
+multicast address so that several Listeners may receive it. In addition,
+AVB switches can reserve an end-to-end path with guaranteed bandwidth
+for a stream. This is done by the Talker endpoint advertising the
+stream to the switches and the Listener(s) registering to receive it. If
+sufficient bandwidth is not available, this registration will fail.</p>
+<p>Streams carry their own <em>presentation time</em>, the time
+that samples are due to be output, allowing multiple Listeners that
+receive the same stream to output in sync.</p>
+<blockquote>
+<div><ul>
+<li>Streams are encoded using the 1722 AVB transport protocol.</li>
+<li>All channels in a stream must be synchronized to
+the same sample clock.</li>
+<li>All the channels in a stream must come from the same Talker.</li>
+<li>Routing of audio streams uses Ethernet layer 2 routing based on a multicast destination MAC address</li>
+<li>Routing of channels is done at the stream level. All channels within a
+stream must be routed to the same place. However, a stream can be
+multicast to several Listeners, each of which picks out different
+channels.</li>
+<li>A single end point can be both a Talker and Listener.</li>
+<li>Information such as stream ID and destination MAC address of a Talker stream should be communicated to Listeners via 1722.1.
+(see Section <a class="reference" href="#sec-config"><span>Device Discovery, Connection Management and Control</span></a>).</li>
+</ul>
+</div></blockquote>
+</div><h3 id="internal-routing-media-fifos">Internal routing, media FIFOs</h3>
+<div><img alt="_images/internal_routing.png" class="align-center" src="_images/internal_routing.png" />
+<p>As described in the previous section, an IEEE 1722 audio stream may
+consist of many channels. These channels need to be routed to
+particular audio I/Os on the endpoint. To achieve maximum flexibility
+the XMOS design uses intermediate media FIFOs to route
+audio.  Each FIFO contains a single channel of audio.</p>
+<p>The above figure shows the breakdown of 1722 streams
+into local FIFOs. The figure shows four points where
+transitions to and from media FIFOs occur. For audio being received by
+an endpoint:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>When a 1722 stream is received, its channels are mapped to output
+media FIFOs. This mapping can be configured
+dynamically so that it can be changed at runtime by the configuration component.</li>
+<li>The digital hardware interface maps media FIFOs to audio
+outputs. This mapping is fixed and is configured statically in the
+software.</li>
+</ol>
+</div></blockquote>
+<p>For audio being transmitted by an endpoint:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>The digital hardware interface maps digital audio inputs to
+local media FIFOs. This mapping is fixed and cannot be changed
+at runtime.</li>
+<li>Several input FIFOs can be combined into a 1722 stream. This
+mapping is dynamic.</li>
+</ol>
+</div></blockquote>
+<p>The configuration of the mappings is handled through the API describe
+in <a class="reference" href="page6.html#sec-avb-api"><span>AVB API</span></a>.</p>
+<p class="note">Media FIFOs use shared memory to move data between tasks, thus the
+filling and emptying of the FIFO must be on the same tile.</p>
+</div><h3 id="talker-units">Talker units</h3>
+<div><img alt="_images/talker-crop.png" class="align-center" src="_images/talker-crop.png" />
+<p>A talker unit consists of one logcial core which creates <em>IEEE 1722</em> packets and passes the audio samples onto the MAC. Audio
+samples are passed to this component via input media FIFOs.
+Samples are pushed into this FIFO from a different task implementing the audio hardware interface. The Talker task removes the samples and combines them into <em>IEEE 1722</em> Ethernet packets to be transmitted via the MAC component.</p>
+<p>When the packets are created the timestamps are converted to the time domain of the global clock provided by the PTP component, and a fixed offset is added to the timestamps to provide the <em>presentation time</em> of the samples (<em>i.e</em> the time at which the sample should be played by a Listener).</p>
+<p>A system may have several Talker units. However, since samples are
+passed via a shared memory interface a talker can only combine input FIFOs
+that are created on the same tile as the talker. The instantiating of
+talker units is performed via the API described in Section
+<a class="reference" href="page6.html#sec-component-api"><span>Component tasks and functions</span></a>. Once the talker unit starts, it registers
+with the main control task and is controlled via the main AVB API
+described in Section <a class="reference" href="page6.html#sec-avb-api"><span>AVB API</span></a>.</p>
+</div><h3 id="listener-units">Listener units</h3>
+<div><img alt="_images/listener-crop.png" class="align-center" src="_images/listener-crop.png" />
+<p>A Listener unit takes <em>IEEE 1722</em> packets from the MAC
+and converts them into a sample stream to be fed into a media FIFO.
+Each audio Listener component can listen to several <em>IEEE 1722</em>
+streams.</p>
+<p>A system may have several Listener units. The instantiating of
+Listener units is performed via the API described in Section
+<a class="reference" href="page6.html#sec-component-api"><span>Component tasks and functions</span></a>. Once the Listener unit starts, it registers
+with the main control task and is controlled via the main AVB API
+described in Section <a class="reference" href="page6.html#sec-avb-api"><span>AVB API</span></a>.</p>
+</div><h3 id="media-fifos-to-xc-channels">Media FIFOs to XC channels</h3>
+<div><p>Sometimes it is useful to convert the audio stream in a media FIFO
+into a sample stream over an XC channel. This may be needed to move
+samples off tile or if the audio interface task requires samples
+over a channel. Several functions are provided to do this and are
+described in Section <a class="reference" href="page6.html#sec-component-api"><span>Component tasks and functions</span></a>.</p>
+</div><h3 id="audio-hardware-interfaces">Audio hardware interfaces</h3>
+<div><p>The audio hardware interface components drive external audio hardware, pull
+audio out of media output FIFOs and push into media input FIFOs.</p>
+<p>Different interfaces interact in different ways, some
+directly push and pull from the media FIFOs, whereas some for
+performance reasons require samples to be provided over an XC
+channel.</p>
+<p>The following diagram shows one potential layout of the I2S component
+which pushes its input directly to media input FIFOs but takes output
+FIFOs from an XC channel. The diagram shows the supporting task that
+takes samples out of the media output FIFOs and serializes them over
+an XC channel:</p>
+<img alt="_images/i2s-crop.png" class="align-center" src="_images/i2s-crop.png" />
+</div></div><h2 class="topic" id="media-clocks">Media clocks</h2>
+<div><p>A media clock controls the rate at which information is passed to an
+external media playing device. For example, an audio word clock that
+governs the rate at which samples should be passed to an audio CODEC.
+An XMOS AVB endpoint can keep track of several media clocks.</p>
+<p>A media clock can be synchronized to one of two sources:</p>
+<blockquote>
+<div><ul>
+<li>An incoming clock signal on a port.</li>
+<li>The word clock of a remote endpoint, derived from an incoming <em>IEEE 1722</em> audio stream.</li>
+</ul>
+</div></blockquote>
+<p>A hardware interface can be tied to a particular media
+clock, allowing the media output from the XMOS device to be
+synchronized with other devices on the network.</p>
+<p>All media clocks are maintained by the media clock server
+component. This component maintains
+the current state of all the media clocks in the system. It then
+periodically updates other components with clock change information to
+keep the system synchronized. The set of media clocks is determined by
+an array passed to the server at startup.</p>
+<p>The media clock server component also receives information from the
+audio listener component to track timing information of incoming
+<em>IEEE 1722</em> streams. It then sends control information back to
+ensure the listening component honors the presentation time of the
+incoming stream.</p>
+<p class="note">Multiple media clocks require multiple hardware PLLs. AVB-DC hardware supports a single media clock.</p>
+<h3 id="driving-an-external-clock-generator">Driving an external clock generator</h3>
+<div><p>A high quality, low jitter master clock is often required to drive an audio CODEC and must be synchronized with an AVB media clock.
+The XS1 chip cannot provide this clock directly but can provide a
+lower frequency source for a frequency synthesizer chip or external
+PLL chip.
+The frequency synthesizer chip must be able to generate a high
+frequency clock based on a lower frequency signal, such as the Cirrus Logic CS2100-CP. The
+recommended configuration is as in the block diagram below:</p>
+<img alt="_images/ratectl.png" class="align-center" src="_images/ratectl.png" />
+<p>The XS1 device provides control to the frequency synthesizer and the
+frequency synthesizer provides the audio master clock to the CODEC and XS1 device. The
+sample bit and word clocks are then provided to the CODEC by
+the XS1 device.</p>
+</div></div><h2 class="topic" id="device-discovery-connection-management-and-control"><span id="sec-config"></span>Device Discovery, Connection Management and Control</h2>
+<div><h3 id="the-control-task">The control task</h3>
+<div><p>In addition to components described in previous sections, an AVB
+endpoint application requires a task to control and configure the
+system. This control task varies across applications but the protocol to provide device discovery, connection management and control services has been standardised by the IEEE in 1722.1.</p>
+</div><h3 id="id1">1722.1</h3>
+<div><p>The 1722.1 standard defines four independent steps that can be used to connect end stations that use 1722 streams to transport media across a LAN. The steps are:</p>
+<ol class="loweralpha simple">
+<li>Discovery</li>
+<li>Enumeration</li>
+<li>Connection Management</li>
+<li>Control</li>
+</ol>
+<p>These steps can be used together to form a system of end stations that interoperate with each other in a standards compliant way. The application that will use these individual steps is called a <em>Controller</em> and is the third member in the Talker, Listener and Controller device relationship.</p>
+<p>A Controller may exist within a Talker, a Listener, or exist remotely within the network in a separate endpoint or general purpose computer.</p>
+<p>The Controller can use the individual steps to find, connect and control entities on the network but it may choose to not use all of the steps if the Controller already knows some of the information (e.g. hard coded values assigned by user/hardware switch or values from previous session establishment) that can be gained in using the steps. The only required step is connection management because this is the step that establishes the bandwidth usage and reservations across the AVB network.</p>
+<p>The four steps are broken down as follows:</p>
+<blockquote>
+<div><ul>
+<li>Discovery is the process of finding AVB endpoints on the LAN that have services that are useful to the other
+AVB endpoints on the network. The discovery process also covers the termination of the publication of those
+services on the network.</li>
+<li>Enumeration is the process of the collection of information from the AVB endpoint that could help an
+1722.1 Controller to use the capabilities of the AVB endpoint. This information can be used for connection
+management.</li>
+<li>Connection management is the process of connecting or disconnecting one or more streams between two or more
+AVB endpoint.</li>
+<li>Control is the process of adjusting a parameter on the endpoint from another endpoint. There are a number of standard
+types of controls used in media devices like volume control, mute control and so on. A framework of basic
+commands allows the control process to be extended by the endpoint.</li>
+</ul>
+</div></blockquote>
+<p class="note">The XMOS endpoint provides full support for Talker and Listener 1722.1 services. It is expected that Controller software will be available on the network for handling connection management and control.</p>
+<p>To assist in this task a unified control API is presented in Section <a class="reference" href="page6.html#sec-avb-api"><span>AVB API</span></a>.</p>
+</div></div><h2 class="topic" id="resource-usage"><span id="sec-resource"></span>Resource usage</h2>
+<div><h3 id="available-chip-resources">Available chip resources</h3>
+<div><p>Each XMOS device has a set of resources detailed in the following
+table. The resources are split amongst different tiles on the device
+which may affect how resources can be used:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="42%" />
+<col width="13%" />
+<col width="13%" />
+<col width="13%" />
+<col width="19%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head"><p>Device</p>
+</th>
+<th class="head"><p>Logical Cores</p>
+</th>
+<th class="head"><p>MIPS/Core</p>
+</th>
+<th class="head"><p>Memory (KB)</p>
+</th>
+<th class="head"><p>Ports</p>
+</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><p>XS1-L16A-128-QF124-C10</p>
+</td>
+<td><p>16</p>
+</td>
+<td><p>1000</p>
+</td>
+<td><p>128</p>
+</td>
+<td><div class="first last line-block">
+<div class="line">32 x 1bit</div>
+<div class="line">12 x 4bit</div>
+<div class="line">7 x 8bit</div>
+<div class="line">3 x 16bit</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="note">Note that some ports overlap on the device so, for example,
+using a 16 bit port may make some 1 bit ports unavailable. See
+the device datasheets for details.</p>
+<p>The following sections detail the resource required for each
+component. Please note that the memory requirements for code size
+should be taken as a rough guide since exact memory usage depends
+on the integration of components (which components are on which
+tile etc.) in the final build of the application.</p>
+</div><h3 id="ethernet-component">Ethernet component</h3>
+<div><p>Each endpoint requires an Ethernet MAC layer.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head"><p>Component</p>
+</th>
+<th class="head"><p>Logical Cores</p>
+</th>
+<th class="head"><p>MIPS/Core</p>
+</th>
+<th class="head"><p>Memory (KB)</p>
+</th>
+<th class="head"><p>Ports</p>
+</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><p>Dual-port Ethernet with SMI</p>
+</td>
+<td><p>7</p>
+</td>
+<td><p>50</p>
+</td>
+<td><p>15 code, 1.5 per buffer</p>
+</td>
+<td><p>10 x 1bit, 4 x 4bit</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div><h3 id="ptp-component">PTP component</h3>
+<div><p>Every AVB endpoint must include a PTP component.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head"><p>Component</p>
+</th>
+<th class="head"><p>Logical Cores</p>
+</th>
+<th class="head"><p>MIPS/Core</p>
+</th>
+<th class="head"><p>Memory (KB)</p>
+</th>
+<th class="head"><p>Ports</p>
+</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><p>PTP</p>
+</td>
+<td><p>1</p>
+</td>
+<td><p>50</p>
+</td>
+<td><p>7</p>
+</td>
+<td><p>None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div><h3 id="media-clock-server">Media clock server</h3>
+<div><p>Every AVB endpoint must include a media clock server.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head"><p>Component</p>
+</th>
+<th class="head"><p>Logical Cores</p>
+</th>
+<th class="head"><p>MIPS/Core</p>
+</th>
+<th class="head"><p>Memory (KB)</p>
+</th>
+<th class="head"><p>Ports</p>
+</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><p>Media Clock Server</p>
+</td>
+<td><p>1</p>
+</td>
+<td><p>50</p>
+</td>
+<td><p>1</p>
+</td>
+<td><p>None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>If the endpoint drives an external PLL, a PLL driver component
+is required.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head"><p>Component</p>
+</th>
+<th class="head"><p>Logical Cores</p>
+</th>
+<th class="head"><p>MIPS/Core</p>
+</th>
+<th class="head"><p>Memory (KB)</p>
+</th>
+<th class="head"><p>Ports</p>
+</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><p>PLL driver</p>
+</td>
+<td><p>0 - 1</p>
+</td>
+<td><p>50</p>
+</td>
+<td><p>0.5</p>
+</td>
+<td><p>1 x 1bit + ports to configure PLL</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="note">PTP, Media Clock Server and PLL driver components may be combined into a single logical core running at 100 MIPS if
+the number of channels is constrained to 2.</p>
+</div><h3 id="audio-component-s">Audio component(s)</h3>
+<div><p>Each endpoint may have several listener and talker components. Each
+listener/talker component is capable of handling four IEEE 1722
+streams and up to 12 channels of audio.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="25%" />
+<col width="14%" />
+<col width="21%" />
+<col width="21%" />
+<col width="18%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head"><p>Component</p>
+</th>
+<th class="head"><p>Logical Cores</p>
+</th>
+<th class="head"><p>MIPS/Core</p>
+</th>
+<th class="head"><p>Memory (KB)</p>
+</th>
+<th class="head"><p>Ports</p>
+</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><p>1722 listener unit</p>
+</td>
+<td><p>1</p>
+</td>
+<td><p>50</p>
+</td>
+<td><p>5</p>
+</td>
+<td><p>None</p>
+</td>
+</tr>
+<tr><td><p>1722 talker unit</p>
+</td>
+<td><p>1</p>
+</td>
+<td><p>50</p>
+</td>
+<td><p>5</p>
+</td>
+<td><p>None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="note">The Talker and Listener components may be combined into a single logical core running at 100 MIPS if
+the number of streams is 1 and the number of channels is &lt;= 4.</p>
+<p>The amount of resource required for audio processing depends on the
+interface and the number of audio channels required. The overheads
+for the interface are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="18%" />
+<col width="13%" />
+<col width="17%" />
+<col width="18%" />
+<col width="33%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head"><p>Component</p>
+</th>
+<th class="head"><p>Logical Cores</p>
+</th>
+<th class="head"><p>MIPS/Core</p>
+</th>
+<th class="head"><p>Memory(KB)</p>
+</th>
+<th class="head"><p>Ports</p>
+</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><p>I2S</p>
+</td>
+<td><p>1</p>
+</td>
+<td><p>50</p>
+</td>
+<td><p>0.5</p>
+</td>
+<td><div class="first last line-block">
+<div class="line">3 x 1bit</div>
+<div class="line">1 x 1bit per stereo channel</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The following table shows that number of channels an interface can
+handle per logical core:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head"><p>Component</p>
+</th>
+<th class="head"><p>Sample Rate (kHz)</p>
+</th>
+<th class="head"><p>Channels</p>
+</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><p>I2S</p>
+</td>
+<td><p>44.1/48</p>
+</td>
+<td><p>8 in and 8 out</p>
+</td>
+</tr>
+<tr><td><p>I2S</p>
+</td>
+<td><p>88.2/96</p>
+</td>
+<td><p>4 in and 4 out</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Note that several instances of the audio interface component
+can be made <em>e.g.</em> you could use 2 logical cores to handle 16 channels
+of I2S. The following table shows how much buffering
+memory is required depending on the number of audio channels.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head"><p>Sample Rate (kHz)</p>
+</th>
+<th class="head"><p>Audio Channels</p>
+</th>
+<th class="head"><p>Memory (KB)</p>
+</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><p>44.1</p>
+</td>
+<td><p>n in/m out</p>
+</td>
+<td><p>0.5 x (n+m)</p>
+</td>
+</tr>
+<tr><td><p>48</p>
+</td>
+<td><p>n in/m out</p>
+</td>
+<td><p>0.5 x (n+m)</p>
+</td>
+</tr>
+<tr><td><p>88.2</p>
+</td>
+<td><p>n in/m out</p>
+</td>
+<td><p>1 x (n+m)</p>
+</td>
+</tr>
+<tr><td><p>96</p>
+</td>
+<td><p>n in/m out</p>
+</td>
+<td><p>1 x (n+m)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div><h3 id="configuration-control">Configuration/control</h3>
+<div><p>In addition to the other components
+there are application dependant tasks that control
+other I/O. For general configuration and slow I/O a minimum of
+1 logical core (50 MIPS) should be reserved.</p>
+</div></div>
+
+             </div>
+             </div>
+
+
+          </div>
+
+          <div>
+             <!--seealsos-->
+          </div><div id="local_seealso">
+             <h1>See Also</h1>
+             <ul class="iconmenu">
+             <li><a href="page0.html">Overview</a></li>
+             <li><a href="page7.html">XMOS AVB-DC specification</a></li>
+             <li><a href="page2.html">Ethernet AVB standards</a></li>
+             <li><a href="page8.html">Hardware development platforms</a></li>
+             <li><a href="page9.html">Programming guide</a></li>
+             <li><a href="page6.html">API Reference</a></li>
+             </ul>
+          </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>

@@ -1,0 +1,142 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>AVB-DC Quick Start Guide &mdash; AVB-DC Quick Start Guide v documentation</title>
+
+    <link rel="stylesheet" href=".static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href=".static/globals.css"  type="text/css" />
+    <link rel="stylesheet" href=".static/ui.css" type="text/css" />
+    <link rel="stylesheet" href=".static/app.css"  type="text/css" />
+    <link rel="stylesheet" href=".static/mobile.css"  type="text/css" />
+    <link rel="stylesheet" href=".static/xde.css"
+    type="text/css" /><script type="text/javascript" src=".static/scripts.js"></script>
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src=".static/jquery.js"></script>
+    <script type="text/javascript" src=".static/underscore.js"></script>
+    <script type="text/javascript" src=".static/doctools.js"></script>
+    <link rel="top" title="AVB-DC Quick Start Guide v documentation" href="index.html" /> 
+  </head>
+  <body class="xde indented-content" onload="prepareContents();">  
+          <div id="body">
+             <div id="content">
+             <h1>AVB-DC Quick Start Guide</h1>
+
+             <div class='columns'>
+            
+  <p>This guide is intended for customers who have purchased the AVB-DC kit based on sliceKIT (XK-SK-AVB-DC).
+It applies to version 1.0 of the AVB-DC firmware. An AVB-capable Apple Mac running OS X 10.9 Mavericks is required.</p>
+<h2 class="topic" id="obtaining-the-latest-firmware">Obtaining the latest firmware</h2>
+<div><ol class="arabic simple">
+<li>Log into xmos.com and access <cite>My XMOS</cite> <strong>&gt;</strong> <cite>Reference Designs</cite></li>
+<li>Request access to the <cite>XMOS AVB-DC Software Release</cite> by clicking the <cite>Request Access</cite> link under <cite>AVB DAISY-CHAIN KIT</cite>. An email will be sent to your registered email address when access is granted.</li>
+<li>A <cite>Download</cite> link will appear where the <cite>Request Access</cite> link previously appeared. Click and download the firmware zip.</li>
+</ol>
+</div><h2 class="topic" id="installing-xtimecomposer-tools-suite">Installing xTIMEcomposer Tools Suite</h2>
+<div><p>The AVB-DC software requires xTIMEcomposer version 13.0.0 or greater. It can be downloaded at the following URL
+<a class="reference" href="https://www.xmos.com/en/support/downloads/xtimecomposer"><span>https://www.xmos.com/en/support/downloads/xtimecomposer</span></a></p>
+</div><h2 class="topic" id="importing-and-building-the-firmware">Importing and building the firmware</h2>
+<div><p>To import and build the firmware, open xTIMEcomposer Studio and
+follow these steps:</p>
+<ol class="arabic simple">
+<li>Choose <cite>File</cite> <strong>&gt;</strong> <cite>Import</cite>.</li>
+<li>Choose <cite>General</cite> <strong>&gt;</strong> <cite>Existing Projects into Workspace</cite> and
+click <strong>Next</strong>.</li>
+<li>Click <strong>Browse</strong> next to <strong>`Select archive file`</strong> and select
+the firmware .zip file downloaded in section 1.</li>
+<li>Make sure that all projects are ticked in the
+<cite>Projects</cite> list.</li>
+<li>Click <strong>Finish</strong>.</li>
+<li>Select the <tt class="docutils literal"><span class="pre">app_daisy_chain</span></tt> project in the Project Explorer and click the <strong>Build</strong> icon in the main toolbar.</li>
+</ol>
+</div><h2 class="topic" id="installing-the-application-onto-flash-memory">Installing the application onto flash memory</h2>
+<div><ol class="arabic simple">
+<li>Connect the xTAG-2 debug adapter (XA-SK-XTAG2) to the first sliceKIT core board.</li>
+<li>Connect the xTAG-2 to the debug adapter.</li>
+<li>Plug the xTAG-2 into your development system via USB.</li>
+<li>Plug in the 12V power adapter and connect it to the sliceKIT core board.</li>
+<li>In xTIMEcomposer, right-click on the binary within the <em>app_daisy_chain/bin</em> folder of the project.</li>
+<li>Choose <cite>Flash As</cite> <strong>&gt;</strong> <cite>Flash Configurations</cite>.</li>
+<li>Double click <cite>xCORE Application</cite> in the left panel.</li>
+<li>Choose <cite>hardware</cite> in <cite>Device options</cite> and select the relevant xTAG-2 adapter.</li>
+<li>Click on <strong>Apply</strong> if configuration has changed.</li>
+<li>Click on <strong>Flash</strong>. Once completed, disconnect the power from the sliceKIT core board.</li>
+<li>Repeat steps 1 through 8 for the second sliceKIT.</li>
+</ol>
+</div><h2 class="topic" id="setting-up-the-hardware">Setting up the hardware</h2>
+<div><blockquote>
+<div><div align="center" class="figure">
+<div class="caption"><span>XK-SK-AVB-DC</span></div>
+<img alt="_images/board.jpg" src="_images/board.jpg" />
+</div>
+</div></blockquote>
+<p>Refer to Figure 1 for the correct setup of the I/O sliceCARDs to the sliceKIT core boards.</p>
+<ol class="arabic simple">
+<li>The Ethernet sliceCARDs (XA-SK-E100) must be inserted into the slots denoted by the Circle and Square symbols.</li>
+<li>The audio sliceCARD (XA-SK-AUDIO-PLL) must be inserted into the slot denoted by the Triangle symbol.</li>
+<li>Connect the two sliceKITs together using an Ethernet cable between either of the Ethernet ports.</li>
+<li>Connect one of the remaining Ethernet ports to an AVB-capable Apple Mac running OS X 10.9 Mavericks.</li>
+<li>Connect the provided 12V power supplies to the input power jacks of the boards and power them on.</li>
+</ol>
+</div><h2 class="topic" id="apple-mac-os-x-setup">Apple Mac OS X Setup</h2>
+<div><p>All Apple Macs with a Thunderbolt port are AVB capable.</p>
+<p>To enumerate and stream audio between a Mac and XMOS AVB-DC endpoints:</p>
+<ol class="arabic">
+<li>Install/upgrade to OS X Mavericks Version &gt;=10.9</li>
+<li>Connect the XMOS AVB daisy chain to the Mac via the Ethernet port or Thunderbolt Ethernet adapter.</li>
+<li>Open the <em>Audio MIDI Setup</em> utility.</li>
+<li>In the menu bar, select <cite>Window</cite> <strong>&gt;</strong> <cite>Show Network Device Browser</cite>.<blockquote>
+<div><img alt="_images/show_browser.png" class="align-center" src="_images/show_browser.png" />
+</div></blockquote>
+</li>
+<li>XMOS AVB-DC endpoints will enumerate in this list as <em>AVB 4in/4out</em>. Select the checkbox to the left of the entries to connect
+the devices. Pressing the <em>Identify</em> button will identify the particular device by lighting LED1 and LED2 on the audio sliceCARD.<blockquote>
+<div><img alt="_images/network_device_browser.png" class="align-center" src="_images/network_device_browser.png" />
+</div></blockquote>
+</li>
+<li>On successful connection, the devices will appear as Audio Devices in the <em>Audio MIDI Setup</em> window.</li>
+<li>The devices can be streamed to individually, aggregated as an 8in/8out device, or treated as a Multi-Output Device.
+Aggregate or Multi-Output devices can be created in the Audio MIDI Setup window by clicking on the plus in the bottom left corner.<blockquote>
+<div><img alt="_images/create_aggregate.png" class="align-center" src="_images/create_aggregate.png" />
+</div></blockquote>
+</li>
+<li>Once created, an Aggregate or Multi-Output device can be configured to use the XMOS AVB-DC endpoints by selecting the &#8216;Use&#8217; checkboxes
+beside the Audio Devices.<blockquote>
+<div><img alt="_images/ams.png" class="align-center" src="_images/ams.png" />
+</div></blockquote>
+</li>
+<li>To enable audio streaming to/from a device, right click on the device in the left pane and select <em>Use this device for sound input</em> and
+<em>Use this device for sound output</em>.<blockquote>
+<div><img alt="_images/set_default.png" class="align-center" src="_images/set_default.png" />
+</div></blockquote>
+</li>
+<li>Audio can now be played and recorded via the endpoints.</li>
+</ol>
+<p class="note">Note: Volume and sample rate control of AVB audio devices is not currently available via Audio MIDI Setup</p>
+</div>
+
+             </div>
+             </div>
+
+
+          </div>
+
+          <div>
+             <!--seealsos-->
+          </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>

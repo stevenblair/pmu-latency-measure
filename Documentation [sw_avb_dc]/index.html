@@ -1,0 +1,134 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<!--XDE partnum="XM-004457-SM" version="1.0.6rc0"-->
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>AVB-DC Software Stack &mdash; AVB-DC Software Stack v documentation</title>
+
+    <link rel="stylesheet" href=".static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href=".static/globals.css"  type="text/css" />
+    <link rel="stylesheet" href=".static/ui.css" type="text/css" />
+    <link rel="stylesheet" href=".static/app.css"  type="text/css" />
+    <link rel="stylesheet" href=".static/mobile.css"  type="text/css" />
+    <link rel="stylesheet" href=".static/xde.css"
+    type="text/css" /><script type="text/javascript" src=".static/scripts.js"></script>
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src=".static/jquery.js"></script>
+    <script type="text/javascript" src=".static/underscore.js"></script>
+    <script type="text/javascript" src=".static/doctools.js"></script>
+    <link rel="top" title="AVB-DC Software Stack v documentation" href="#" />
+    <link rel="next" title="sw_avb_dc Change Log" href="changelog.html" /> 
+  </head>
+  <body class="xde indented-content" onload="prepareContents();">  
+          <div id="body">
+             <div id="content">
+             <h1>AVB-DC Software Stack</h1>
+
+             <div class='columns'>
+            
+  <ul class="field_list"><li><h2>Version</h2>
+<p><p>1.0.6rc0</p>
+</p>
+</li>
+<li><h2>Vendor</h2>
+<p><p>XMOS</p>
+</p>
+</li>
+<li><h2>Description</h2>
+<p><p>AVB-DC specific application software</p>
+</p>
+</li>
+</ul>
+<h2 class="topic" id="software-blocks">Software Blocks</h2>
+<div><dl class="docutils">
+<dt>AVB-DC example application (app_daisy_chain)</dt>
+<dd><p>A 1722.1 example daisy chain endpoint application</p>
+</dd>
+</dl>
+</div><h2 class="topic" id="documentation">Documentation</h2>
+<div><blockquote>
+<div><ul>
+<li><a class="reference" href="././doc/index.html"><span>XMOS AVB-DC Design Guide</span></a> <a class="reference" href="././doc.pdf"><span>PDF</span></a></li>
+<li><a class="reference" href="././app_daisy_chain/doc_quickstart/index.html"><span>AVB-DC Quick Start Guide</span></a> <a class="reference" href="././app_daisy_chain/doc_quickstart.pdf"><span>PDF</span></a></li>
+<li><a class="reference" href="././changelog.html"><span>Release Notes</span></a></li>
+</ul>
+</div></blockquote>
+</div><h2 class="topic" id="key-features">Key Features</h2>
+<div><ul>
+<li>Up to 4in/4out I2S audio channels</li>
+<li>Support for 4 daisy-chained nodes</li>
+<li>1722 Talker and Listener (simultaneous) support</li>
+<li>1722 MAAP support for Talkers</li>
+<li>802.1Q MRP, MVRP, SRP protocols</li>
+<li>gPTP server and protocol</li>
+<li>Media clock recovery and interface to PLL clock source</li>
+<li>Support for 1722.1 AVDECC: ADP, AECP (AEM) and ACMP</li>
+</ul>
+</div><h2 class="topic" id="firmware-overview">Firmware Overview</h2>
+<div><p>This firmware is a daisy-chain endpoint implementation of Audio Video Bridging protocols for XMOS XS1-L16A-128-QF124-C10 devices.
+It includes a PTP time server to provide a stable wallclock reference and clock recovery to synchronise listener audio to talker audio
+codecs. The Stream Reservation Protocol is used to reserve bandwidth through 802.1 network infrastructure.</p>
+</div><h2 class="topic" id="known-issues">Known Issues</h2>
+<div><ul>
+<li><dl class="docutils">
+<dt>Building will generate invalid warning messages that can be ignored:</dt>
+<dd><ul class="first last">
+<li><em>WARNING: Include file .build/generated/module_avb_1722_1/aem_descriptors.h missing</em></li>
+<li><em>audio_i2s.h:187: warning: cannot unroll loop due to unknown loop iteration count</em></li>
+<li><em>xta: warning: target (0x0) of: (xscope_constructor+88) 0x18244 bl (lu10) -0xc124 not found in executable sections</em></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li>Apple Macs may send bad PTP Sync timestamps under load. A workaround has been implemented in AVB-DC firmware to prevent loss of audio
+which may may cause interoperability issues with non-compliant AVB bridges. This workaround can be disabled at the following
+line in module_gptp/src/gptp_config.h:
+<em>#define PTP_THROW_AWAY_SYNC_OUTLIERS 0</em></li>
+</ul>
+</div><h2 class="topic" id="required-software-dependencies">Required software (dependencies)</h2>
+<div><blockquote>
+<div><ul>
+<li>sc_avb</li>
+<li>sc_ethernet</li>
+<li>sc_i2c</li>
+<li>sc_slicekit_support</li>
+<li>sc_otp</li>
+<li>sc_util</li>
+</ul>
+</div></blockquote>
+</div><h2 class="topic" id="support">Support</h2>
+<div><blockquote>
+<div><p>This package is support by XMOS Ltd. Issues can be raised against the software
+at:</p>
+<blockquote>
+<div><p><a class="reference" href="http://www.xmos.com/support"><span>http://www.xmos.com/support</span></a></p>
+</div></blockquote>
+</div></blockquote>
+</div>
+
+             </div>
+             </div>
+
+
+          </div>
+
+          <div>
+             <!--seealsos-->
+          </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>

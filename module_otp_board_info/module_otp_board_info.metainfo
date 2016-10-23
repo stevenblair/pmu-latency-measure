@@ -1,0 +1,20 @@
+-- -*- mode: lua -*-
+
+configPoints = {}
+
+derivedValues = {}
+
+function getConfigStatus()
+         return "Trusted", {};
+end
+
+ports = {}
+
+channels = {}
+
+generatedCode = {
+   includes = {"otp_board_info.h"},
+   globals  = "",
+   body = ""
+}
+

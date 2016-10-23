@@ -1,0 +1,2420 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>API Reference &mdash; XMOS AVB-DC Design Guide v documentation</title>
+
+    <link rel="stylesheet" href=".static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href=".static/globals.css"  type="text/css" />
+    <link rel="stylesheet" href=".static/ui.css" type="text/css" />
+    <link rel="stylesheet" href=".static/app.css"  type="text/css" />
+    <link rel="stylesheet" href=".static/mobile.css"  type="text/css" />
+    <link rel="stylesheet" href=".static/xde.css"
+    type="text/css" /><script type="text/javascript" src=".static/scripts.js"></script>
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src=".static/jquery.js"></script>
+    <script type="text/javascript" src=".static/underscore.js"></script>
+    <script type="text/javascript" src=".static/doctools.js"></script>
+    <link rel="top" title="XMOS AVB-DC Design Guide v documentation" href="index.html" />
+    <link rel="prev" title="Programming guide" href="page9.html" /> 
+  </head>
+  <body class="xde indented-content" onload="prepareContents();">  
+          <div id="body">
+             <div id="content">
+             <h1>API Reference</h1>
+
+             <div class='columns'>
+            
+  <h2 class="topic" id="configuration-defines"><span id="sec-defines-api"></span>Configuration defines</h2>
+<div><h3 id="demo-and-hardware-specific">Demo and hardware specific</h3>
+<div><p>Demo parameters and hardware port definitions are set in a header configuration file named <tt class="docutils literal"><span class="pre">app_config.h</span></tt> within the <tt class="docutils literal"><span class="pre">src/</span></tt> directory
+of the application.</p>
+<ul class='lib'><li class="macro">
+<h2 id="AVB_DEMO_ENABLE_TALKER">
+<tt class="descname">AVB_DEMO_ENABLE_TALKER</tt></h2>
+<p>Global switch to enable or disable AVB Talker functionality in the demo.</p>
+</li>
+
+<li class="macro">
+<h2 id="AVB_DEMO_ENABLE_LISTENER">
+<tt class="descname">AVB_DEMO_ENABLE_LISTENER</tt></h2>
+<p>Global switch to enable or disable AVB Listener functionality in the demo.</p>
+</li>
+
+<li class="macro">
+<h2 id="AVB_DEMO_NUM_CHANNELS">
+<tt class="descname">AVB_DEMO_NUM_CHANNELS</tt></h2>
+<p>Number of input/output audio channels in the demo application For simplicity, input and output is identical in size but can be configured differently in <tt class="docutils literal"><span class="pre">avb_conf.h</span></tt>.</p>
+</li>
+
+</ul></div><h3 id="core-avb-parameters">Core AVB parameters</h3>
+<div><p>Each application using the AVB modules must include a header configuration file named
+<tt class="docutils literal"><span class="pre">avb_conf.h</span></tt> within the <tt class="docutils literal"><span class="pre">src/</span></tt> directory of the application and this file must set the #defines in the following two sections.</p>
+<p>See the demo application for a realistic example.</p>
+<p class="note">Defaults for these #defines are assigned in their absence, but may cause compilation failure or unpredictable/erroneous behaviour.</p>
+</div><h3 id="ethernet">Ethernet</h3>
+<div><p>See the Ethernet documentation for detailed information on its parameters:</p>
+<p><a class="reference" href="https://www.xmos.com/published/xmos-layer-2-ethernet-mac-component?version=latest"><span>https://www.xmos.com/published/xmos-layer-2-ethernet-mac-component?version=latest</span></a></p>
+</div><h3 id="audio-subsystem">Audio subsystem</h3>
+<div><ul class='lib'><li class="macro">
+<h2 id="AVB_MAX_AUDIO_SAMPLE_RATE">
+<tt class="descname">AVB_MAX_AUDIO_SAMPLE_RATE</tt></h2>
+<p>The maximum sample rate in Hz of audio that is to be input or output.</p>
+</li>
+
+<li class="macro">
+<h2 id="AVB_NUM_SOURCES">
+<tt class="descname">AVB_NUM_SOURCES</tt></h2>
+<p>The total number of AVB sources (streams that are to be transmitted).</p>
+</li>
+
+<li class="macro">
+<h2 id="AVB_NUM_TALKER_UNITS">
+<tt class="descname">AVB_NUM_TALKER_UNITS</tt></h2>
+<p>The total number or Talker components (typically the number of tasks running the <a class="reference" href="#avb_1722_talker" title="avb_1722_talker"><span>avb_1722_talker()</span></a> function).</p>
+</li>
+
+<li class="macro">
+<h2 id="AVB_MAX_CHANNELS_PER_TALKER_STREAM">
+<tt class="descname">AVB_MAX_CHANNELS_PER_TALKER_STREAM</tt></h2>
+<p>The maximum number of channels permitted per 1722 Talker stream.</p>
+</li>
+
+<li class="macro">
+<h2 id="AVB_NUM_MEDIA_INPUTS">
+<tt class="descname">AVB_NUM_MEDIA_INPUTS</tt></h2>
+<p>The total number of media inputs (typically number of I2S input channels).</p>
+</li>
+
+<li class="macro">
+<h2 id="AVB_NUM_SINKS">
+<tt class="descname">AVB_NUM_SINKS</tt></h2>
+<p>The total number of AVB sinks (incoming streams that can be listened to).</p>
+</li>
+
+<li class="macro">
+<h2 id="AVB_NUM_LISTENER_UNITS">
+<tt class="descname">AVB_NUM_LISTENER_UNITS</tt></h2>
+<p>The total number or listener components (typically the number of tasks running the <a class="reference" href="#avb_1722_listener" title="avb_1722_listener"><span>avb_1722_listener()</span></a> function).</p>
+</li>
+
+<li class="macro">
+<h2 id="AVB_MAX_CHANNELS_PER_LISTENER_STREAM">
+<tt class="descname">AVB_MAX_CHANNELS_PER_LISTENER_STREAM</tt></h2>
+<p>The maximum number of channels permitted per 1722 Listener stream.</p>
+</li>
+
+<li class="macro">
+<h2 id="AVB_NUM_MEDIA_OUTPUTS">
+<tt class="descname">AVB_NUM_MEDIA_OUTPUTS</tt></h2>
+<p>The total number of media outputs (typically the number of I2S output channels).</p>
+</li>
+
+<li class="macro">
+<h2 id="AVB_NUM_MEDIA_UNITS">
+<tt class="descname">AVB_NUM_MEDIA_UNITS</tt></h2>
+<p>The number of components in the endpoint that will register and initialize media FIFOs (typically an audio interface component such as I2S).</p>
+</li>
+
+<li class="macro">
+<h2 id="AVB_NUM_MEDIA_CLOCKS">
+<tt class="descname">AVB_NUM_MEDIA_CLOCKS</tt></h2>
+<p>The number of media clocks in the endpoint.</p>
+<p>Typically the number of clock domains, each with a separate PLL and master clock.</p>
+</li>
+
+</ul></div><h3 id="id1">1722.1</h3>
+<div><ul class='lib'><li class="macro">
+<h2 id="AVB_ENABLE_1722_1">
+<tt class="descname">AVB_ENABLE_1722_1</tt></h2>
+<p>Enable 1722.1 AVDECC on the entity.</p>
+</li>
+
+<li class="macro">
+<h2 id="AVB_1722_1_TALKER_ENABLED">
+<tt class="descname">AVB_1722_1_TALKER_ENABLED</tt></h2>
+<p>Enable the 1722.1 Talker functionality.</p>
+</li>
+
+<li class="macro">
+<h2 id="AVB_1722_1_LISTENER_ENABLED">
+<tt class="descname">AVB_1722_1_LISTENER_ENABLED</tt></h2>
+<p>Enable the 1722.1 Listener functionality.</p>
+</li>
+
+<li class="macro">
+<h2 id="AVB_1722_1_CONTROLLER_ENABLED">
+<tt class="descname">AVB_1722_1_CONTROLLER_ENABLED</tt></h2>
+<p>Enable 1722.1 Controller functionality on the entity.</p>
+</li>
+
+</ul><p>Descriptor specific strings can be modified in a header configuration file named
+<tt class="docutils literal"><span class="pre">aem_entity_strings.h.in</span></tt> within the <tt class="docutils literal"><span class="pre">src/</span></tt> directory. It is post-processed by a script
+in the build stage to expand strings to 64 octet padded with zeros.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="42%" />
+<col width="58%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head"><p>Define</p>
+</th>
+<th class="head"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><p><tt class="docutils literal"><span class="pre">AVB_1722_1_ENTITY_NAME_STRING</span></tt></p>
+</td>
+<td><p>A string (64 octet max) containing an Entity name</p>
+</td>
+</tr>
+<tr><td><p><tt class="docutils literal"><span class="pre">AVB_1722_1_FIRMWARE_VERSION_STRING</span></tt></p>
+</td>
+<td><p>A string (64 octet max) containing the firmware version of the Entity</p>
+</td>
+</tr>
+<tr><td><p><tt class="docutils literal"><span class="pre">AVB_1722_1_GROUP_NAME_STRING</span></tt></p>
+</td>
+<td><p>A string (64 octet max) containing the group name of the Entity</p>
+</td>
+</tr>
+<tr><td><p><tt class="docutils literal"><span class="pre">AVB_1722_1_SERIAL_NUMBER_STRING</span></tt></p>
+</td>
+<td><p>A string (64 octet max) containing the serial number of the Entity</p>
+</td>
+</tr>
+<tr><td><p><tt class="docutils literal"><span class="pre">AVB_1722_1_VENDOR_NAME_STRING</span></tt></p>
+</td>
+<td><p>A string (64 octet max) containing the vendor name of the Entity</p>
+</td>
+</tr>
+<tr><td><p><tt class="docutils literal"><span class="pre">AVB_1722_1_MODEL_NAME_STRING</span></tt></p>
+</td>
+<td><p>A string (64 octet max) containing the model name of the Entity</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div></div><h2 class="topic" id="component-tasks-and-functions"><span id="sec-component-api"></span>Component tasks and functions</h2>
+<div><p>The following functions provide components that can be combined in the
+top-level main. For details on the Ethernet component, see
+the <a class="reference" href="http://github.xcore.com/sc_ethernet/index.html"><span>Ethernet Component Guide</span></a>.</p>
+<h3 id="core-components">Core components</h3>
+<div><ul class='lib'><li class="function">
+<h2 id="avb_manager">
+[[combinable]] void <tt class="descname">avb_manager</tt><big>(</big>server interface <a class="reference" href="#avb_interface" title="avb_interface"><span>avb_interface</span></a><em>&nbsp;i_avb[num_avb_clients]</em>, unsigned<em>&nbsp;num_avb_clients</em>, client interface <a class="reference" href="#srp_interface" title="srp_interface"><span>srp_interface</span></a><em>&nbsp;i_srp</em>, chanend<em>&nbsp;c_media_ctl[]</em>, chanend(&amp;<em>&nbsp;?c_listener_ctl)[]</em>, chanend(&amp;<em>&nbsp;?c_talker_ctl)[]</em>, chanend<em>&nbsp;c_mac_tx</em>, client interface media_clock_if<em>&nbsp;?i_media_clock_ctl</em>, chanend<em>&nbsp;c_ptp</em><big>)</big></h2>
+<p>Core AVB API management task that can be combined with other AVB tasks such as SRP or 1722.1.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>i_avb[]</h2>
+<p>array of avb_interface server interfaces connected to clients of avb_manager</p>
+</li>
+<li><h2>num_avb_clients</h2>
+<p>number of client interface connections to the server and the number of elements of i_avb[]</p>
+</li>
+<li><h2>i_srp</h2>
+<p>client interface of type srp_interface into an <tt class="xref c c-func docutils literal"><span class="pre">srp_task()</span></tt> task</p>
+</li>
+<li><h2>c_media_ctl[]</h2>
+<p>array of chanends connected to components that register/control media FIFOs</p>
+</li>
+<li><h2>c_listener_ctl[]</h2>
+<p>array of chanends connected to components that register/control IEEE 1722 sinks</p>
+</li>
+<li><h2>c_talker_ctl[]</h2>
+<p>array of chanends connected to components that register/control IEEE 1722 sources</p>
+</li>
+<li><h2>c_mac_tx</h2>
+<p>chanend connection to the Ethernet TX server</p>
+</li>
+<li><h2>i_media_clock_ctl</h2>
+<p>client interface of type media_clock_if connected to the media clock server</p>
+</li>
+<li><h2>c_ptp</h2>
+<p>chanend connection to the PTP server</p>
+</li>
+</ul>
+</div></li>
+
+<li class="type">
+<h2 id="avb_srp_info_t">
+<tt class="descname">avb_srp_info_t</tt></h2>
+<p>Struct containing fields required for SRP reservations.</p>
+<p><strong>Structure Members:</strong></p>
+<ul class='lib'><li class="member">
+<h2 id="avb_srp_info_t.stream_id">
+unsigned <tt class="descname">stream_id</tt></h2>
+<p>64-bit Stream ID of the stream</p>
+</li>
+
+<li class="member">
+<h2 id="avb_srp_info_t.dest_mac_addr">
+unsigned char <tt class="descname">dest_mac_addr</tt></h2>
+<p>Stream destination MAC address.</p>
+</li>
+
+<li class="member">
+<h2 id="avb_srp_info_t.vlan_id">
+short <tt class="descname">vlan_id</tt></h2>
+<p>VLAN ID for Stream.</p>
+</li>
+
+<li class="member">
+<h2 id="avb_srp_info_t.tspec_max_frame_size">
+short <tt class="descname">tspec_max_frame_size</tt></h2>
+<p>Maximum frame size sent by Talker.</p>
+</li>
+
+<li class="member">
+<h2 id="avb_srp_info_t.tspec_max_interval">
+short <tt class="descname">tspec_max_interval</tt></h2>
+<p>Maximum number of frames sent per class measurement interval.</p>
+</li>
+
+<li class="member">
+<h2 id="avb_srp_info_t.tspec">
+unsigned char <tt class="descname">tspec</tt></h2>
+<p>Data Frame Priority and Rank fields.</p>
+</li>
+
+<li class="member">
+<h2 id="avb_srp_info_t.accumulated_latency">
+unsigned <tt class="descname">accumulated_latency</tt></h2>
+<p>Latency at ingress port for Talker registrations, or latency at end of egress media for Listener Declarations.</p>
+</li>
+
+</ul></li>
+
+<li class="type">
+<h2 id="srp_interface">
+interface <tt class="descname">srp_interface</tt></h2>
+<ul class='lib'><li class="function">
+<h2 id="srp_interface::register_stream_request">
+void <tt class="descname">register_stream_request</tt><big>(</big><a class="reference" href="#avb_srp_info_t" title="avb_srp_info_t"><span>avb_srp_info_t</span></a><em>&nbsp;stream_info</em><big>)</big></h2>
+<p>Used by a Talker application entity to issue a request to the MSRP Participant to initiate the advertisement of an available Stream.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>stream_info</h2>
+<p>Struct of type avb_srp_info_t containing parameters of the stream to register</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="srp_interface::deregister_stream_request">
+void <tt class="descname">deregister_stream_request</tt><big>(</big>unsigned<em>&nbsp;stream_id[2]</em><big>)</big></h2>
+<p>Used by a Talker application entity to request removal of the Talker’s advertisement declaration, and thus remove the advertisement of a Stream, from the network.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>stream_id</h2>
+<p>two int array containing the Stream ID of the stream to deregister</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="srp_interface::register_attach_request">
+void <tt class="descname">register_attach_request</tt><big>(</big>unsigned<em>&nbsp;stream_id[2]</em><big>)</big></h2>
+<p>Used by a Listener application entity to issue a request to attach to the referenced Stream.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>stream_id</h2>
+<p>two int array containing the Stream ID of the stream to register</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="srp_interface::deregister_attach_request">
+void <tt class="descname">deregister_attach_request</tt><big>(</big>unsigned<em>&nbsp;stream_id[2]</em><big>)</big></h2>
+<p>Used by a Listener application entity to remove the request to attach to the referenced Stream.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>stream_id</h2>
+<p>two int array containing the Stream ID of the stream to deregister</p>
+</li>
+</ul>
+</div></li>
+
+</ul></li>
+
+<li class="function">
+<h2 id="avb_srp_task">
+[[combinable]] void <tt class="descname">avb_srp_task</tt><big>(</big>client interface <a class="reference" href="#avb_interface" title="avb_interface"><span>avb_interface</span></a><em>&nbsp;i_avb</em>, server interface <a class="reference" href="#srp_interface" title="srp_interface"><span>srp_interface</span></a><em>&nbsp;i_srp</em>, chanend<em>&nbsp;c_mac_rx</em>, chanend<em>&nbsp;c_mac_tx</em><big>)</big></h2>
+<p>SRP task that implements MSRP and MVRP protocols.</p>
+<p>Can be combined with other combinable tasks.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>i_avb</h2>
+<p>client interface of type avb_interface into the <a class="reference" href="#avb_manager" title="avb_manager"><span>avb_manager()</span></a>
+ for API control of the stack</p>
+</li>
+<li><h2>i_srp</h2>
+<p>server interface of type srp_interface that offers client tasks access to SRP reservation functionality</p>
+</li>
+<li><h2>c_mac_rx</h2>
+<p>chanend into the Ethernet RX server</p>
+</li>
+<li><h2>c_mac_tx</h2>
+<p>chanend into the Ethernet TX server</p>
+</li>
+</ul>
+</div></li>
+
+<li class="type">
+<h2 id="avb_1722_1_aecp_aem_status_code">
+<tt class="descname">avb_1722_1_aecp_aem_status_code</tt></h2>
+<p><strong>Enum Values:</strong></p>
+<blockquote>
+<div><ul class='lib'><li class="member">
+<h2 id="avb_1722_1_aecp_aem_status_code.AECP_AEM_STATUS_SUCCESS">
+<tt class="descname">AECP_AEM_STATUS_SUCCESS</tt></h2>
+<p>The AVDECC Entity successfully performed the command and has valid results.</p>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_aecp_aem_status_code.AECP_AEM_STATUS_NOT_IMPLEMENTED">
+<tt class="descname">AECP_AEM_STATUS_NOT_IMPLEMENTED</tt></h2>
+<p>The AVDECC Entity does not support the command type.</p>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_aecp_aem_status_code.AECP_AEM_STATUS_NO_SUCH_DESCRIPTOR">
+<tt class="descname">AECP_AEM_STATUS_NO_SUCH_DESCRIPTOR</tt></h2>
+<p>A descriptor with the descriptor_type and descriptor_index specified does not exist.</p>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_aecp_aem_status_code.AECP_AEM_STATUS_ENTITY_LOCKED">
+<tt class="descname">AECP_AEM_STATUS_ENTITY_LOCKED</tt></h2>
+<p>The AVDECC Entity has been locked by another AVDECC Controller.</p>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_aecp_aem_status_code.AECP_AEM_STATUS_ENTITY_ACQUIRED">
+<tt class="descname">AECP_AEM_STATUS_ENTITY_ACQUIRED</tt></h2>
+<p>The AVDECC Entity has been acquired by another AVDECC Controller.</p>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_aecp_aem_status_code.AECP_AEM_STATUS_NOT_AUTHENTICATED">
+<tt class="descname">AECP_AEM_STATUS_NOT_AUTHENTICATED</tt></h2>
+<p>The AVDECC Controller is not authenticated with the AVDECC Entity.</p>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_aecp_aem_status_code.AECP_AEM_STATUS_AUTHENTICATION_DISABLED">
+<tt class="descname">AECP_AEM_STATUS_AUTHENTICATION_DISABLED</tt></h2>
+<p>The AVDECC Controller is trying to use an authentication command when authentication isn’t enable on the AVDECC Entity.</p>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_aecp_aem_status_code.AECP_AEM_STATUS_BAD_ARGUMENTS">
+<tt class="descname">AECP_AEM_STATUS_BAD_ARGUMENTS</tt></h2>
+<p>One or more of the values in the fields of the frame were deemed to be bad by the AVDECC Entity (unsupported, incorrect combination, etc).</p>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_aecp_aem_status_code.AECP_AEM_STATUS_NO_RESOURCES">
+<tt class="descname">AECP_AEM_STATUS_NO_RESOURCES</tt></h2>
+<p>The AVDECC Entity cannot complete the command because it does not have the resources to support it.</p>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_aecp_aem_status_code.AECP_AEM_STATUS_IN_PROGRESS">
+<tt class="descname">AECP_AEM_STATUS_IN_PROGRESS</tt></h2>
+<p>The AVDECC Entity is processing the command and will send a second response at a later time with the result of the command.</p>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_aecp_aem_status_code.AECP_AEM_STATUS_ENTITY_MISBEHAVING">
+<tt class="descname">AECP_AEM_STATUS_ENTITY_MISBEHAVING</tt></h2>
+<p>The AVDECC Entity is generated an internal error while trying to process the command.</p>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_aecp_aem_status_code.AECP_AEM_STATUS_NOT_SUPPORTED">
+<tt class="descname">AECP_AEM_STATUS_NOT_SUPPORTED</tt></h2>
+<p>The command is implemented but the target of the command is not supported.</p>
+<p>For example trying to set the value of a read-only Control.</p>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_aecp_aem_status_code.AECP_AEM_STATUS_STREAM_IS_RUNNING">
+<tt class="descname">AECP_AEM_STATUS_STREAM_IS_RUNNING</tt></h2>
+<p>The Stream is currently streaming and the command is one which cannot be executed on an Active Stream.</p>
+</li>
+
+</ul></div></blockquote>
+</li>
+
+<li class="type">
+<h2 id="avb_1722_1_control_callbacks">
+interface <tt class="descname">avb_1722_1_control_callbacks</tt></h2>
+<ul class='lib'><li class="function">
+<h2 id="avb_1722_1_control_callbacks::get_control_value">
+unsigned char <tt class="descname">get_control_value</tt><big>(</big>unsigned short<em>&nbsp;control_index</em>, unsigned short<em>&nbsp;&amp;values_length</em>, unsigned char<em>&nbsp;values[AEM_MAX_CONTROL_VALUES_LENGTH_BYTES]</em><big>)</big></h2>
+<p>This function events on a GET_CONTROL 1722.1 command received from a Controller.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>control_index</h2>
+<p>the index of the CONTROL descriptor</p>
+</li>
+<li><h2>values_length</h2>
+<p>a reference to the length in bytes of the <tt class="docutils literal"><span class="pre">values</span></tt> array</p>
+</li>
+<li><h2>values</h2>
+<p>an array of values to return to the Controller The contents of this field are dependent on the Control being fetched.</p>
+</li>
+</ul>
+</div><h4 class="nosecnum compact" id="">Returns</h4>
+<div><p>an AEM status code of enum <tt class="docutils literal"><span class="pre">avb_1722_1_aecp_aem_status_code</span></tt> for the GET_CONTROL response</p>
+</div></li>
+
+<li class="function">
+<h2 id="avb_1722_1_control_callbacks::set_control_value">
+unsigned char <tt class="descname">set_control_value</tt><big>(</big>unsigned short<em>&nbsp;control_index</em>, unsigned short<em>&nbsp;values_length</em>, unsigned char<em>&nbsp;values[AEM_MAX_CONTROL_VALUES_LENGTH_BYTES]</em><big>)</big></h2>
+<p>This function events on a SET_CONTROL 1722.1 command received from a Controller.</p>
+<p>The response should always contain the current value (i.e. it contains the new value if the commands succeeds, or the old value if it fails)</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>control_index</h2>
+<p>the index of the CONTROL descriptor</p>
+</li>
+<li><h2>values_length</h2>
+<p>the length in bytes of the <tt class="docutils literal"><span class="pre">values</span></tt> array</p>
+</li>
+<li><h2>values</h2>
+<p>an array of values to set from the Controller. The contents of this field are dependent on the Control being addressed.</p>
+</li>
+</ul>
+</div><h4 class="nosecnum compact" id="">Returns</h4>
+<div><p>an AEM status code of enum <tt class="docutils literal"><span class="pre">avb_1722_1_aecp_aem_status_code</span></tt> for the SET_CONTROL response</p>
+</div></li>
+
+</ul></li>
+
+<li class="function">
+<h2 id="avb_1722_1_task">
+[[combinable]] void <tt class="descname">avb_1722_1_task</tt><big>(</big>otp_ports_t<em>&nbsp;&amp;otp_ports</em>, client interface <a class="reference" href="#avb_interface" title="avb_interface"><span>avb_interface</span></a><em>&nbsp;i_avb</em>, client interface <a class="reference" href="#avb_1722_1_control_callbacks" title="avb_1722_1_control_callbacks"><span>avb_1722_1_control_callbacks</span></a><em>&nbsp;i_1722_1_entity</em>, client interface <a class="reference" href="#spi_interface" title="spi_interface"><span>spi_interface</span></a><em>&nbsp;i_spi</em>, chanend<em>&nbsp;c_mac_rx</em>, chanend<em>&nbsp;c_mac_tx</em>, chanend<em>&nbsp;c_ptp</em><big>)</big></h2>
+<p>1722.1 task that runs ADP, ACMP and AECP protocols and interacts with the rest of the AVB stack.</p>
+<p>Can be combined with other combinable tasks.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>otp_ports</h2>
+<p>reference to an OTP ports structure of type otp_ports_t</p>
+</li>
+<li><h2>i_avb</h2>
+<p>client interface of type avb_interface into <a class="reference" href="#avb_manager" title="avb_manager"><span>avb_manager()</span></a>
+</p>
+</li>
+<li><h2>i_1722_1_entity</h2>
+<p>client interface of type avb_1722_1_control_callbacks</p>
+</li>
+<li><h2>i_spi</h2>
+<p>client interface of type spi_interface into <a class="reference" href="#avb_srp_task" title="avb_srp_task"><span>avb_srp_task()</span></a>
+</p>
+</li>
+<li><h2>c_mac_rx</h2>
+<p>chanend into the Ethernet RX server</p>
+</li>
+<li><h2>c_mac_tx</h2>
+<p>chanend into the Ethernet TX server</p>
+</li>
+<li><h2>c_ptp</h2>
+<p>chanend into the PTP server</p>
+</li>
+</ul>
+</div></li>
+
+<li class="type">
+<h2 id="fl_spi_ports">
+<tt class="descname">fl_spi_ports</tt></h2>
+<p>Struct containing ports and clocks used to access a flash device.</p>
+<p><strong>Structure Members:</strong></p>
+<ul class='lib'><li class="member">
+<h2 id="fl_spi_ports.spiMISO">
+buffered in port:8 <tt class="descname">spiMISO</tt></h2>
+<p>Master input, slave output (MISO) port.</p>
+</li>
+
+<li class="member">
+<h2 id="fl_spi_ports.spiSS">
+out port <tt class="descname">spiSS</tt></h2>
+<p>Slave select (SS) port.</p>
+</li>
+
+<li class="member">
+<h2 id="fl_spi_ports.spiCLK">
+buffered out port:32 <tt class="descname">spiCLK</tt></h2>
+<p>Serial clock (SCLK) port.</p>
+</li>
+
+<li class="member">
+<h2 id="fl_spi_ports.spiMOSI">
+buffered out port:8 <tt class="descname">spiMOSI</tt></h2>
+<p>Master output, slave input (MOSI) port.</p>
+</li>
+
+<li class="member">
+<h2 id="fl_spi_ports.spiClkblk">
+clock <tt class="descname">spiClkblk</tt></h2>
+<p>Clock block for use with SPI ports.</p>
+</li>
+
+</ul></li>
+
+<li class="type">
+<h2 id="spi_interface">
+interface <tt class="descname">spi_interface</tt></h2>
+<ul class='lib'><li class="function">
+<h2 id="spi_interface::command_status">
+int <tt class="descname">command_status</tt><big>(</big>int<em>&nbsp;cmd</em>, unsigned<em>&nbsp;returnBytes</em><big>)</big></h2>
+<p>This function issues a single command without parameters to the SPI, and reads up to 4 bytes status value from the device.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>cmd</h2>
+<p>command value - listed above</p>
+</li>
+<li><h2>returnBytes</h2>
+<p>The number of bytes that are to be read from the device after the command is issued. 0 means no bytes will be read.</p>
+</li>
+</ul>
+</div><h4 class="nosecnum compact" id="">Returns</h4>
+<div><p>the read bytes, or zero if no bytes were requested. If multiple bytes are requested, then the last byte read is in the least-significant byte of the return value.</p>
+</div></li>
+
+<li class="function">
+<h2 id="spi_interface::command_address_status">
+void <tt class="descname">command_address_status</tt><big>(</big>int<em>&nbsp;cmd</em>, unsigned int<em>&nbsp;address</em>, unsigned char<em>&nbsp;data[]</em>, int<em>&nbsp;returnBytes</em><big>)</big></h2>
+<p>This function issues a single command with a 3-byte address parameter and an optional data-set to be output to or input form the device.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>cmd</h2>
+<p>command value - listed above</p>
+</li>
+<li><h2>address</h2>
+<p>the address to send to the SPI device. Only the least significant 24 bits are used.</p>
+</li>
+<li><h2>data</h2>
+<p>an array of data that contains either data to be written to the device, or which is used to store that that is read from the device.</p>
+</li>
+<li><h2>returnBytes</h2>
+<p>If positive, then this is the number of bytes that are to be read from the device, into <tt class="docutils literal"><span class="pre">data</span></tt>. If negative, then this is (minus) the number of bytes to be written to the device from <tt class="docutils literal"><span class="pre">data</span></tt>. 0 means no bytes will be read or written.</p>
+</li>
+</ul>
+</div></li>
+
+</ul></li>
+
+<li class="function">
+<h2 id="spi_task">
+[[distributable]] void <tt class="descname">spi_task</tt><big>(</big>server interface <a class="reference" href="#spi_interface" title="spi_interface"><span>spi_interface</span></a><em>&nbsp;i_spi</em>, <a class="reference" href="#fl_spi_ports" title="fl_spi_ports"><span>fl_spi_ports</span></a><em>&nbsp;&amp;spi_ports</em><big>)</big></h2>
+<p>Task that implements a SPI interface to serial flash, typically the boot flash.</p>
+<p>Can be combined or distributed into other tasks.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>i_spi</h2>
+<p>server interface of type <tt class="docutils literal"><span class="pre">spi_interface</span></tt></p>
+</li>
+<li><h2>spi_ports</h2>
+<p>reference to a <tt class="docutils literal"><span class="pre">fl_spi_ports</span></tt> structure containing the SPI flash ports and clockblock</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="ptp_server">
+void <tt class="descname">ptp_server</tt><big>(</big>chanend<em>&nbsp;mac_rx</em>, chanend<em>&nbsp;mac_tx</em>, chanend<em>&nbsp;ptp_clients[]</em>, int<em>&nbsp;num_clients</em>, enum ptp_server_type<em>&nbsp;server_type</em><big>)</big></h2>
+<p>This function runs the PTP server.</p>
+<p>It takes one thread and runs indefinitely</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>mac_rx</h2>
+<p>chanend connected to the ethernet server (receive)</p>
+</li>
+<li><h2>mac_tx</h2>
+<p>chanend connected to the ethernet server (transmit)</p>
+</li>
+<li><h2>client</h2>
+<p>an array of chanends to connect to clients of the ptp server</p>
+</li>
+<li><h2>num_clients</h2>
+<p>The number of clients attached</p>
+</li>
+<li><h2>server_type</h2>
+<p>The type of the server (<tt class="docutils literal"><span class="pre">PTP_GRANDMASTER_CAPABLE</span></tt> or <tt class="docutils literal"><span class="pre">PTP_SLAVE_ONLY</span></tt>)</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="media_clock_server">
+void <tt class="descname">media_clock_server</tt><big>(</big>server interface media_clock_if<em>&nbsp;media_clock_ctl</em>, chanend<em>&nbsp;?ptp_svr</em>, chanend(&amp;<em>&nbsp;?buf_ctl)[num_buf_ctl]</em>, unsigned<em>&nbsp;num_buf_ctl</em>, out buffered port:32<em>&nbsp;p_fs[]</em><big>)</big></h2>
+<p>The media clock server.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>media_clock_ctl</h2>
+<p>server interface of type media_clock_if connected to the <a class="reference" href="#avb_manager" title="avb_manager"><span>avb_manager()</span></a>
+ task and passed into <tt class="xref c c-func docutils literal"><span class="pre">avb_init()</span></tt></p>
+</li>
+<li><h2>ptp_svr</h2>
+<p>chanend connected to the PTP server</p>
+</li>
+<li><h2>buf_ctl[]</h2>
+<p>array of links to listener components requiring buffer management</p>
+</li>
+<li><h2>num_buf_ctl</h2>
+<p>size of the buf_ctl array</p>
+</li>
+<li><h2>p_fs</h2>
+<p>output port to drive PLL reference clock</p>
+</li>
+<li><h2>c_rx</h2>
+<p>chanend connected to the ethernet server (receive)</p>
+</li>
+<li><h2>c_tx</h2>
+<p>chanend connected to the ethernet server (transmit)</p>
+</li>
+<li><h2>c_ptp[]</h2>
+<p>an array of chanends to connect to clients of the ptp server</p>
+</li>
+<li><h2>num_ptp</h2>
+<p>The number of PTP clients attached</p>
+</li>
+<li><h2>server_type</h2>
+<p>The type of the PTP server (<tt class="docutils literal"><span class="pre">PTP_GRANDMASTER_CAPABLE</span></tt> or <tt class="docutils literal"><span class="pre">PTP_SLAVE_ONLY</span></tt>)</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="avb_1722_listener">
+void <tt class="descname">avb_1722_listener</tt><big>(</big>chanend<em>&nbsp;c_mac_rx</em>, chanend<em>&nbsp;?c_buf_ctl</em>, chanend<em>&nbsp;?c_ptp_ctl</em>, chanend<em>&nbsp;c_listener_ctl</em>, int<em>&nbsp;num_streams</em><big>)</big></h2>
+<p>An AVB IEEE 1722 audio listener thread.</p>
+<p>This thread implements a listener. It takes IEEE 1722 packets from the ethernet MAC and splits them into output FIFOs. The buffer fill level of these streams is set in conjunction with communication to the media clock server. This thread is dynamically configured using the AVB control API.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>c_mac_rx</h2>
+<p>receive link to the ethernet MAC</p>
+</li>
+<li><h2>c_buf_ctl</h2>
+<p>buffer control link to the media clock server</p>
+</li>
+<li><h2>c_ptp_ctl</h2>
+<p>PTP server link for retrieving PTP time info</p>
+</li>
+<li><h2>c_listener_ctl</h2>
+<p>channel to configure the listener (given to <tt class="xref c c-func docutils literal"><span class="pre">avb_init()</span></tt>)</p>
+</li>
+<li><h2>num_streams</h2>
+<p>the number of streams the unit will handle</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="avb_1722_talker">
+void <tt class="descname">avb_1722_talker</tt><big>(</big>chanend<em>&nbsp;c_ptp</em>, chanend<em>&nbsp;c_mac_tx</em>, chanend<em>&nbsp;c_talker_ctl</em>, int<em>&nbsp;num_streams</em><big>)</big></h2>
+<p>An AVB IEEE 1722 audio talker thread.</p>
+<p>This thread implements a talker, taking media input FIFOs and combining them into 1722 packets to be sent to the ethernet component. It is dynamically configured using the AVB control API.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>c_ptp</h2>
+<p>link to the PTP timing server</p>
+</li>
+<li><h2>c_mac_tx</h2>
+<p>transmit link to the ethernet MAC</p>
+</li>
+<li><h2>c_talker_ctl</h2>
+<p>channel to configure the talker (given to <tt class="xref c c-func docutils literal"><span class="pre">avb_init()</span></tt>)</p>
+</li>
+<li><h2>num_streams</h2>
+<p>the number of streams the unit controls</p>
+</li>
+</ul>
+</div></li>
+
+</ul></div><h3 id="audio-components">Audio components</h3>
+<div><p>The following types are used by the AVB audio components:</p>
+<ul class='lib'><li class="type">
+<h2 id="media_output_fifo_t">
+<tt class="descname">media_output_fifo_t</tt></h2>
+<p>This type provides a handle to a media output FIFO.</p>
+</li>
+
+<li class="type">
+<h2 id="media_output_fifo_data_t">
+<tt class="descname">media_output_fifo_data_t</tt></h2>
+<p>This type provides the data structure used by a media output FIFO.</p>
+</li>
+
+<li class="type">
+<h2 id="media_input_fifo_t">
+<tt class="descname">media_input_fifo_t</tt></h2>
+<p>This type provides a handle to a media input fifo.</p>
+</li>
+
+<li class="type">
+<h2 id="media_input_fifo_data_t">
+<tt class="descname">media_input_fifo_data_t</tt></h2>
+<p>This type provides the data structure used by a media input fifo.</p>
+</li>
+
+</ul><p>The following functions implement AVB audio components:</p>
+<ul class='lib'><li class="function">
+<h2 id="init_media_input_fifos">
+void <tt class="descname">init_media_input_fifos</tt><big>(</big><a class="reference" href="#media_input_fifo_t" title="media_input_fifo_t"><span>media_input_fifo_t</span></a><em>&nbsp;ififos[]</em>, <a class="reference" href="#media_input_fifo_data_t" title="media_input_fifo_data_t"><span>media_input_fifo_data_t</span></a><em>&nbsp;ififo_data[]</em>, int<em>&nbsp;n</em><big>)</big></h2>
+<p>Initialize media input fifos.</p>
+<p>This function intializes media input FIFOs and ties the handles to their associated data structures. It should be called before the main component function on a thread to setup the FIFOs.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>ififos</h2>
+<p>an array of media input FIFO handles to initialize</p>
+</li>
+<li><h2>ififo_data</h2>
+<p>an array of associated data structures</p>
+</li>
+<li><h2>n</h2>
+<p>the number of FIFOs to initialize</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="init_media_output_fifos">
+void <tt class="descname">init_media_output_fifos</tt><big>(</big><a class="reference" href="#media_output_fifo_t" title="media_output_fifo_t"><span>media_output_fifo_t</span></a><em>&nbsp;ofifos[]</em>, <a class="reference" href="#media_output_fifo_data_t" title="media_output_fifo_data_t"><span>media_output_fifo_data_t</span></a><em>&nbsp;ofifo_data[]</em>, int<em>&nbsp;n</em><big>)</big></h2>
+<p>Initialize media output FIFOs.</p>
+<p>This function initializes media output FIFOs and ties the handles to their associated data structures. It should be called before the main component function on a thread to setup the FIFOs.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>ofifos</h2>
+<p>an array of media output FIFO handles to initialize</p>
+</li>
+<li><h2>ofifo_data</h2>
+<p>an array of associated data structures</p>
+</li>
+<li><h2>n</h2>
+<p>the number of FIFOs to initialize</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="i2s_master">
+static void <tt class="descname">i2s_master</tt><big>(</big>i2s_ports_t<em>&nbsp;&amp;ports</em>, in buffered port:32(&amp;<em>&nbsp;?p_din)[]</em>, int<em>&nbsp;num_in</em>, out buffered port:32(&amp;<em>&nbsp;?p_dout)[]</em>, int<em>&nbsp;num_out</em>, int<em>&nbsp;master_to_word_clock_ratio</em>, <a class="reference" href="#media_input_fifo_t" title="media_input_fifo_t"><span>media_input_fifo_t</span></a>(&amp;<em>&nbsp;?input_fifos)[]</em>, <a class="reference" href="#media_output_fifo_t" title="media_output_fifo_t"><span>media_output_fifo_t</span></a>(&amp;<em>&nbsp;?output_fifos)[]</em>, chanend<em>&nbsp;media_ctl</em>, int<em>&nbsp;clk_ctl_index</em><big>)</big></h2>
+<p>Input and output audio data using I2S format with the XCore acting as master.</p>
+<p>This function implements a task that can handle several synchronous I2S interfaces. It inputs and outputs 24-bit data packed into 32 bits.</p>
+<p>This function can handle up to 8in and 8out at 48KHz.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>ports</h2>
+<p>a reference to a structure of type <tt class="docutils literal"><span class="pre">i2s_ports_t</span></tt> containing the I2S port definitions</p>
+</li>
+<li><h2>p_din</h2>
+<p>array of ports to input data from</p>
+</li>
+<li><h2>num_in</h2>
+<p>number of input ports</p>
+</li>
+<li><h2>p_dout</h2>
+<p>array of ports to output data to</p>
+</li>
+<li><h2>num_out</h2>
+<p>number of output ports</p>
+</li>
+<li><h2>master_to_word_clock_ratio</h2>
+<p>the ratio of the master clock to the word clock; must be one of 128, 256 or 512</p>
+</li>
+<li><h2>input_fifos</h2>
+<p>a map from the inputs to local talker streams. The channels of the inputs are interleaved, for example, if you have two input ports, the map                                {0,1,0,1} w would map to the two stereo local talker streams 0 and 1.</p>
+</li>
+<li><h2>output_fifos</h2>
+<p>a map from the outputs to local Listener streams</p>
+</li>
+<li><h2>media_ctl</h2>
+<p>a media clock control chanend connected to an <a class="reference" href="#avb_manager" title="avb_manager"><span>avb_manager()</span></a>
+ task</p>
+</li>
+<li><h2>clk_ctl_index</h2>
+<p>the index of the clock control, default 0</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="media_output_fifo_to_xc_channel">
+void <tt class="descname">media_output_fifo_to_xc_channel</tt><big>(</big>streaming chanend<em>&nbsp;samples_out</em>, <a class="reference" href="#media_output_fifo_t" title="media_output_fifo_t"><span>media_output_fifo_t</span></a><em>&nbsp;ofifos[]</em>, int<em>&nbsp;num_channels</em><big>)</big></h2>
+<p>Output audio streams from media fifos to an XC channel.</p>
+<p>This function outputs samples from several media output FIFOs over an XC channel over the streaming chanend <tt class="docutils literal"><span class="pre">samples_out</span></tt>.</p>
+<p>The protocol over the channel is that the thread expects a timestamp to be sent to it and then it will output <tt class="docutils literal"><span class="pre">num_channels</span></tt> samples, pulling from the <tt class="docutils literal"><span class="pre">ofifos</span></tt> array. It will then expect another timestamp before the next set of samples.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>samples_out</h2>
+<p>the chanend on which samples are output</p>
+</li>
+<li><h2>ofifos</h2>
+<p>array of media output FIFOs to pull from</p>
+</li>
+<li><h2>num_channels</h2>
+<p>the number of channels (or FIFOs)</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="media_output_fifo_to_xc_channel_split_lr">
+void <tt class="descname">media_output_fifo_to_xc_channel_split_lr</tt><big>(</big>streaming chanend<em>&nbsp;samples_out</em>, <a class="reference" href="#media_output_fifo_t" title="media_output_fifo_t"><span>media_output_fifo_t</span></a><em>&nbsp;output_fifos[]</em>, int<em>&nbsp;num_channels</em><big>)</big></h2>
+<p>Output audio streams from media FIFOs to an XC channel, splitting left and right pairs.</p>
+<p>This function outputs samples from several media output FIFOs over an XC channel over the streaming chanend <tt class="docutils literal"><span class="pre">samples_out</span></tt>. The media FIFOs are assumed to be grouped in left/right stereo pairs which are then split.</p>
+<p>The protocol over the channel is that the thread expects a timestamp to be sent to it and then it will first output <tt class="docutils literal"><span class="pre">num_channels/2</span></tt> samples, pulling from all the even indexed elements of the <tt class="docutils literal"><span class="pre">ofifos</span></tt> array and then output all the odd elements. It will then expect another timestamp before the next set of samples.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>samples_out</h2>
+<p>the chanend on which samples are output</p>
+</li>
+<li><h2>output_fifos</h2>
+<p>array of media output fifos to pull from</p>
+</li>
+<li><h2>num_channels</h2>
+<p>the number of channels (or FIFOs)</p>
+</li>
+</ul>
+</div></li>
+
+</ul></div></div><h2 class="topic" id="avb-api"><span id="sec-avb-api"></span>AVB API</h2>
+<div><h3 id="general-control-functions">General control functions</h3>
+<div><ul class='lib'><li class="function">
+<h2 id="avb_get_control_packet">
+void <tt class="descname">avb_get_control_packet</tt><big>(</big>chanend<em>&nbsp;c_rx</em>, unsigned int<em>&nbsp;buf[]</em>, unsigned int<em>&nbsp;&amp;nbytes</em>, unsigned int<em>&nbsp;&amp;port_num</em><big>)</big></h2>
+<p>Receives an 802.1Qat SRP packet or an IEEE 1722 control packet.</p>
+<p>This function receives an AVB control packet from the ethernet MAC. It is selectable so can be used in a select statement as a case.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>c_rx</h2>
+<p>chanend connected to the ethernet component</p>
+</li>
+<li><h2>buf</h2>
+<p>buffer to retrieve the packet into; buffer must have length at least <tt class="docutils literal"><span class="pre">MAX_AVB_CONTROL_PACKET_SIZE</span></tt> bytes</p>
+</li>
+<li><h2>nbytes</h2>
+<p>a reference parameter that is filled with the length of the received packet</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="avb_process_srp_control_packet">
+void <tt class="descname">avb_process_srp_control_packet</tt><big>(</big>client interface <a class="reference" href="#avb_interface" title="avb_interface"><span>avb_interface</span></a><em>&nbsp;i_avb</em>, unsigned int<em>&nbsp;buf[]</em>, unsigned<em>&nbsp;len</em>, chanend<em>&nbsp;c_tx</em>, unsigned int<em>&nbsp;port_num</em><big>)</big></h2>
+<p>Process an AVB SRP control packet.</p>
+<p>This function processes an 802.1Qat ethernet packet</p>
+<p>This function should always be called on the buffer filled by <a class="reference" href="#avb_get_control_packet" title="avb_get_control_packet"><span>avb_get_control_packet()</span></a>.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>i_avb</h2>
+<p>client interface of type avb_interface into <a class="reference" href="#avb_manager" title="avb_manager"><span>avb_manager()</span></a>
+</p>
+</li>
+<li><h2>buf</h2>
+<p>the incoming message buffer</p>
+</li>
+<li><h2>len</h2>
+<p>the length (in bytes) of the incoming buffer</p>
+</li>
+<li><h2>c_tx</h2>
+<p>chanend connected to the ethernet mac (TX)</p>
+</li>
+<li><h2>port_num</h2>
+<p>the id of the Ethernet interface the packet was received</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="avb_process_1722_control_packet">
+void <tt class="descname">avb_process_1722_control_packet</tt><big>(</big>unsigned int<em>&nbsp;buf[]</em>, unsigned<em>&nbsp;nbytes</em>, chanend<em>&nbsp;c_tx</em>, client interface <a class="reference" href="#avb_interface" title="avb_interface"><span>avb_interface</span></a><em>&nbsp;i_avb</em>, client interface <a class="reference" href="#avb_1722_1_control_callbacks" title="avb_1722_1_control_callbacks"><span>avb_1722_1_control_callbacks</span></a><em>&nbsp;i_1722_1_entity</em>, client interface <a class="reference" href="#spi_interface" title="spi_interface"><span>spi_interface</span></a><em>&nbsp;i_spi</em><big>)</big></h2>
+<p>Process an AVB 1722 control packet.</p>
+<p>This function processes a 1722 ethernet packet with the control data bit set</p>
+<p>This function should always be called on the buffer filled by <a class="reference" href="#avb_get_control_packet" title="avb_get_control_packet"><span>avb_get_control_packet()</span></a>.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>buf</h2>
+<p>the incoming message buffer</p>
+</li>
+<li><h2>nbytes</h2>
+<p>the length (in bytes) of the incoming buffer</p>
+</li>
+<li><h2>c_tx</h2>
+<p>chanend connected to the ethernet mac (TX)</p>
+</li>
+<li><h2>i_avb</h2>
+<p>client interface of type avb_interface into <a class="reference" href="#avb_manager" title="avb_manager"><span>avb_manager()</span></a>
+</p>
+</li>
+<li><h2>i_1722_1_entity</h2>
+<p>client interface of type avb_1722_1_control_callbacks</p>
+</li>
+<li><h2>i_spi</h2>
+<p>client interface of type spi_interface into <a class="reference" href="#avb_srp_task" title="avb_srp_task"><span>avb_srp_task()</span></a>
+</p>
+</li>
+</ul>
+</div></li>
+
+</ul></div><h3 id="multicast-address-allocation-commands">Multicast Address Allocation commands</h3>
+<div><ul class='lib'><li class="function">
+<h2 id="avb_1722_maap_request_addresses">
+void <tt class="descname">avb_1722_maap_request_addresses</tt><big>(</big>int<em>&nbsp;num_addresses</em>, char(&amp;<em>&nbsp;?start_address)[]</em><big>)</big></h2>
+<p>Request a range of multicast addresses.</p>
+<p>This function requests a range of multicast addresses to use as destination addresses for IEEE 1722 streams. It starts the reservation process according to the 1722 MAAP protocol. If the reservation is successful it is reported via the status return value of <tt class="xref c c-func docutils literal"><span class="pre">avb_periodic()</span></tt>.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>num_addresses</h2>
+<p>number of addresses to try and reserve; will be reserved in a contiguous range</p>
+</li>
+<li><h2>start_address</h2>
+<p>an optional six byte array specifying the required start address of the range NOTE: must be within the MAAP reserved pool; if argument is null then the start address will be picked at random from the MAAP reserved pool</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="avb_1722_maap_rerequest_addresses">
+void <tt class="descname">avb_1722_maap_rerequest_addresses</tt><big>(</big><big>)</big></h2>
+<p>Re-request a claim on the existing address range.</p>
+<p>If there is a current address reservation, this will reset the state machine into the PROBE state, in order to cause the protocol to re-probe and re-allocate the addresses.</p>
+</li>
+
+<li class="function">
+<h2 id="avb_1722_maap_relinquish_addresses">
+void <tt class="descname">avb_1722_maap_relinquish_addresses</tt><big>(</big><big>)</big></h2>
+<p>Relinquish the reserved MAAP address range.</p>
+<p>This function abandons the claim to the reserved address range</p>
+</li>
+
+</ul></div><h3 id="maap-application-hooks">MAAP application hooks</h3>
+<div><ul class='lib'><li class="function">
+<h2 id="avb_talker_on_source_address_reserved">
+void <tt class="descname">avb_talker_on_source_address_reserved</tt><big>(</big>client interface <a class="reference" href="#avb_interface" title="avb_interface"><span>avb_interface</span></a><em>&nbsp;i_avb</em>, int<em>&nbsp;source_num</em>, unsigned char<em>&nbsp;mac_addr[6]</em><big>)</big></h2>
+<p>MAAP has indicated that a multicast address has been successfully reserved for this Talker stream.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>i_avb</h2>
+<p>client interface of type avb_interface into <a class="reference" href="#avb_manager" title="avb_manager"><span>avb_manager()</span></a>
+</p>
+</li>
+<li><h2>source_num</h2>
+<p>The local source ID of the Talker</p>
+</li>
+<li><h2>mac_addr</h2>
+<p>The destination MAC address reserved for this Talker</p>
+</li>
+</ul>
+</div></li>
+
+</ul></div><h3 id="avb-control-api">AVB Control API</h3>
+<div><ul class='lib'><li class="type">
+<h2 id="device_media_clock_type_t">
+<tt class="descname">device_media_clock_type_t</tt></h2>
+<p><strong>Enum Values:</strong></p>
+<blockquote>
+<div><ul class='lib'><li class="member">
+<h2 id="device_media_clock_type_t.DEVICE_MEDIA_CLOCK_INPUT_STREAM_DERIVED">
+<tt class="descname">DEVICE_MEDIA_CLOCK_INPUT_STREAM_DERIVED</tt></h2>
+</li>
+
+<li class="member">
+<h2 id="device_media_clock_type_t.DEVICE_MEDIA_CLOCK_LOCAL_CLOCK">
+<tt class="descname">DEVICE_MEDIA_CLOCK_LOCAL_CLOCK</tt></h2>
+</li>
+
+</ul></div></blockquote>
+</li>
+
+<li class="type">
+<h2 id="device_media_clock_state_t">
+<tt class="descname">device_media_clock_state_t</tt></h2>
+<p><strong>Enum Values:</strong></p>
+<blockquote>
+<div><ul class='lib'><li class="member">
+<h2 id="device_media_clock_state_t.DEVICE_MEDIA_CLOCK_STATE_DISABLED">
+<tt class="descname">DEVICE_MEDIA_CLOCK_STATE_DISABLED</tt></h2>
+</li>
+
+<li class="member">
+<h2 id="device_media_clock_state_t.DEVICE_MEDIA_CLOCK_STATE_ENABLED">
+<tt class="descname">DEVICE_MEDIA_CLOCK_STATE_ENABLED</tt></h2>
+</li>
+
+</ul></div></blockquote>
+</li>
+
+<li class="type">
+<h2 id="avb_interface">
+interface <tt class="descname">avb_interface</tt></h2>
+<ul class='lib'><li class="function">
+<h2 id="avb_interface::initialise">
+void <tt class="descname">initialise</tt><big>(</big>void<big>)</big></h2>
+</li>
+
+<li class="function">
+<h2 id="avb_interface::_get_source_info">
+avb_source_info_t <tt class="descname">_get_source_info</tt><big>(</big>unsigned<em>&nbsp;source_num</em><big>)</big></h2>
+<p>Intended for internal use within client interface get and set extensions only.</p>
+</li>
+
+<li class="function">
+<h2 id="avb_interface::_set_source_info">
+void <tt class="descname">_set_source_info</tt><big>(</big>unsigned<em>&nbsp;source_num</em>, avb_source_info_t<em>&nbsp;info</em><big>)</big></h2>
+<p>Intended for internal use within client interface get and set extensions only.</p>
+</li>
+
+<li class="function">
+<h2 id="avb_interface::_get_sink_info">
+avb_sink_info_t <tt class="descname">_get_sink_info</tt><big>(</big>unsigned<em>&nbsp;sink_num</em><big>)</big></h2>
+<p>Intended for internal use within client interface get and set extensions only.</p>
+</li>
+
+<li class="function">
+<h2 id="avb_interface::_set_sink_info">
+void <tt class="descname">_set_sink_info</tt><big>(</big>unsigned<em>&nbsp;sink_num</em>, avb_sink_info_t<em>&nbsp;info</em><big>)</big></h2>
+<p>Intended for internal use within client interface get and set extensions only.</p>
+</li>
+
+<li class="function">
+<h2 id="avb_interface::_get_media_clock_info">
+media_clock_info_t <tt class="descname">_get_media_clock_info</tt><big>(</big>unsigned<em>&nbsp;clock_num</em><big>)</big></h2>
+<p>Intended for internal use within client interface get and set extensions only.</p>
+</li>
+
+<li class="function">
+<h2 id="avb_interface::_set_media_clock_info">
+void <tt class="descname">_set_media_clock_info</tt><big>(</big>unsigned<em>&nbsp;clock_num</em>, media_clock_info_t<em>&nbsp;info</em><big>)</big></h2>
+<p>Intended for internal use within client interface get and set extensions only.</p>
+</li>
+
+</ul></li>
+
+<li class="type">
+<ul class='lib'><li class="function">
+<h2 id="__extends__avb_interface::get_source_format">
+int <tt class="descname">get_source_format</tt><big>(</big>unsigned<em>&nbsp;source_num</em>, enum avb_stream_format_t<em>&nbsp;&amp;format</em>, int<em>&nbsp;&amp;rate</em><big>)</big></h2>
+<p>Get the format of an AVB source.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>source_num</h2>
+<p>the local source number</p>
+</li>
+<li><h2>format</h2>
+<p>the format of the stream</p>
+</li>
+<li><h2>rate</h2>
+<p>the sample rate of the stream in Hz</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::set_source_format">
+int <tt class="descname">set_source_format</tt><big>(</big>unsigned<em>&nbsp;source_num</em>, enum avb_stream_format_t<em>&nbsp;format</em>, int<em>&nbsp;rate</em><big>)</big></h2>
+<p>Set the format of an AVB source.</p>
+<p>The AVB source format covers the encoding and sample rate of the source. Currently the format is limited to a single encoding MBLA 24 bit signed integers.</p>
+<p>This setting will not take effect until the next time the source state moves from disabled to potential.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>source_num</h2>
+<p>the local source number</p>
+</li>
+<li><h2>format</h2>
+<p>the format of the stream</p>
+</li>
+<li><h2>rate</h2>
+<p>the sample rate of the stream in Hz</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::get_source_channels">
+int <tt class="descname">get_source_channels</tt><big>(</big>unsigned<em>&nbsp;source_num</em>, int<em>&nbsp;&amp;channels</em><big>)</big></h2>
+<p>Get the channel count of an AVB source.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>source_num</h2>
+<p>the local source number</p>
+</li>
+<li><h2>channels</h2>
+<p>the number of channels</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::set_source_channels">
+int <tt class="descname">set_source_channels</tt><big>(</big>unsigned<em>&nbsp;source_num</em>, int<em>&nbsp;channels</em><big>)</big></h2>
+<p>Set the channel count of an AVB source.</p>
+<p>Sets the number of channels in the stream.</p>
+<p>This setting will not take effect until the next time the source state moves from disabled to potential.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>source_num</h2>
+<p>the local source number</p>
+</li>
+<li><h2>channels</h2>
+<p>the number of channels</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::get_source_sync">
+int <tt class="descname">get_source_sync</tt><big>(</big>unsigned<em>&nbsp;source_num</em>, int<em>&nbsp;&amp;sync</em><big>)</big></h2>
+<p>Get the media clock of an AVB source.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>source_num</h2>
+<p>the local source number</p>
+</li>
+<li><h2>sync</h2>
+<p>the media clock number</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::set_source_sync">
+int <tt class="descname">set_source_sync</tt><big>(</big>unsigned<em>&nbsp;source_num</em>, int<em>&nbsp;sync</em><big>)</big></h2>
+<p>Set the media clock of an AVB source.</p>
+<p>Sets the media clock of the stream.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>source_num</h2>
+<p>the local source number</p>
+</li>
+<li><h2>sync</h2>
+<p>the media clock number</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::get_source_presentation">
+int <tt class="descname">get_source_presentation</tt><big>(</big>unsigned<em>&nbsp;source_num</em>, int<em>&nbsp;&amp;presentation</em><big>)</big></h2>
+<p>Get the presentation time offset of an AVB source.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>source_num</h2>
+<p>the local source number to set</p>
+</li>
+<li><h2>presentation</h2>
+<p>the presentation offset in ms</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::set_source_presentation">
+int <tt class="descname">set_source_presentation</tt><big>(</big>unsigned<em>&nbsp;source_num</em>, int<em>&nbsp;presentation</em><big>)</big></h2>
+<p>Set the presentation time offset of an AVB source.</p>
+<p>Sets the presentation time offset of a source i.e. the time after sampling that the stream should be played. The default value for this is 2ms.</p>
+<p>This setting will not take effect until the next time the source state moves from disabled to potential.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>source_num</h2>
+<p>the local source number to set</p>
+</li>
+<li><h2>presentation</h2>
+<p>the presentation offset in ms</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::get_source_vlan">
+int <tt class="descname">get_source_vlan</tt><big>(</big>unsigned<em>&nbsp;source_num</em>, int<em>&nbsp;&amp;vlan</em><big>)</big></h2>
+<p>Get the destination vlan of an AVB source.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>source_num</h2>
+<p>the local source number</p>
+</li>
+<li><h2>vlan</h2>
+<p>the destination vlan id, The media clock number</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::set_source_vlan">
+int <tt class="descname">set_source_vlan</tt><big>(</big>unsigned<em>&nbsp;source_num</em>, int<em>&nbsp;vlan</em><big>)</big></h2>
+<p>Set the destination vlan of an AVB source.</p>
+<p>Sets the vlan that the source will transmit on. This defaults to 2.</p>
+<p>This setting will not take effect until the next time the source state moves from disabled to potential.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>source_num</h2>
+<p>the local source number</p>
+</li>
+<li><h2>vlan</h2>
+<p>the destination vlan id, The media clock number</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::get_source_state">
+int <tt class="descname">get_source_state</tt><big>(</big>unsigned<em>&nbsp;source_num</em>, enum avb_source_state_t<em>&nbsp;&amp;state</em><big>)</big></h2>
+<p>Get the current state of an AVB source.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>source_num</h2>
+<p>the local source number</p>
+</li>
+<li><h2>state</h2>
+<p>the state of the source</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::set_source_state">
+int <tt class="descname">set_source_state</tt><big>(</big>unsigned<em>&nbsp;source_num</em>, enum avb_source_state_t<em>&nbsp;state</em><big>)</big></h2>
+<p>Set the current state of an AVB source.</p>
+<p>Sets the current state of an AVB source. You cannot set the state to <tt class="docutils literal"><span class="pre">ENABLED</span></tt>. Changing the state to <tt class="docutils literal"><span class="pre">AVB_SOURCE_STATE_POTENTIAL</span></tt> turns the stream on and it will automatically change to <tt class="docutils literal"><span class="pre">ENABLED</span></tt> when connected to a listener and streaming.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>source_num</h2>
+<p>the local source number</p>
+</li>
+<li><h2>state</h2>
+<p>the state of the source</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::get_source_map">
+int <tt class="descname">get_source_map</tt><big>(</big>unsigned<em>&nbsp;source_num</em>, int<em>&nbsp;map[]</em>, int<em>&nbsp;&amp;len</em><big>)</big></h2>
+<p>Get the channel map of an avb source.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>source_num</h2>
+<p>the local source number to set</p>
+</li>
+<li><h2>map</h2>
+<p>the map, an array of integers giving the input FIFOs that make up the stream</p>
+</li>
+<li><h2>len</h2>
+<p>the length of the map; should be equal to the number of channels in the stream</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::set_source_map">
+int <tt class="descname">set_source_map</tt><big>(</big>unsigned<em>&nbsp;source_num</em>, int<em>&nbsp;map[len]</em>, unsigned<em>&nbsp;len</em><big>)</big></h2>
+<p>Set the channel map of an avb source.</p>
+<p>Sets the channel map of a source i.e. the list of input FIFOs that constitute the stream.</p>
+<p>This setting will not take effect until the next time the source state moves from disabled to potential.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>source_num</h2>
+<p>the local source number to set</p>
+</li>
+<li><h2>map</h2>
+<p>the map, an array of integers giving the input FIFOs that make up the stream</p>
+</li>
+<li><h2>len</h2>
+<p>the length of the map; should be equal to the number of channels in the stream</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::get_source_dest">
+int <tt class="descname">get_source_dest</tt><big>(</big>unsigned<em>&nbsp;source_num</em>, unsigned char<em>&nbsp;addr[]</em>, int<em>&nbsp;&amp;len</em><big>)</big></h2>
+<p>Get the destination address of an avb source.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>source_num</h2>
+<p>the local source number</p>
+</li>
+<li><h2>addr</h2>
+<p>the destination address as an array of 6 bytes</p>
+</li>
+<li><h2>len</h2>
+<p>the length of the address, should always be equal to 6</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::set_source_dest">
+int <tt class="descname">set_source_dest</tt><big>(</big>unsigned<em>&nbsp;source_num</em>, unsigned char<em>&nbsp;addr[len]</em>, unsigned<em>&nbsp;len</em><big>)</big></h2>
+<p>Set the destination address of an avb source.</p>
+<p>Sets the destination MAC address of a source. This setting will not take effect until the next time the source state moves from disabled to potential.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>source_num</h2>
+<p>the local source number</p>
+</li>
+<li><h2>addr</h2>
+<p>the destination address as an array of 6 bytes</p>
+</li>
+<li><h2>len</h2>
+<p>the length of the address, should always be equal to 6</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::get_source_id">
+int <tt class="descname">get_source_id</tt><big>(</big>unsigned<em>&nbsp;source_num</em>, unsigned int<em>&nbsp;id[2]</em><big>)</big></h2>
+</li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::get_sink_id">
+int <tt class="descname">get_sink_id</tt><big>(</big>unsigned<em>&nbsp;sink_num</em>, unsigned int<em>&nbsp;stream_id[2]</em><big>)</big></h2>
+<p>Get the stream id that an AVB sink listens to.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>sink_num</h2>
+<p>the number of the sink</p>
+</li>
+<li><h2>stream_id</h2>
+<p>int array containing the 64-bit of the stream</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::set_sink_id">
+int <tt class="descname">set_sink_id</tt><big>(</big>unsigned<em>&nbsp;sink_num</em>, unsigned int<em>&nbsp;stream_id[2]</em><big>)</big></h2>
+<p>Set the stream id that an AVB sink listens to.</p>
+<p>Sets the stream id that an AVB sink listens to.</p>
+<p>This setting will not take effect until the next time the sink state moves from disabled to potential.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>sink_num</h2>
+<p>the number of the sink</p>
+</li>
+<li><h2>stream_id</h2>
+<p>int array containing the 64-bit of the stream</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::get_sink_format">
+int <tt class="descname">get_sink_format</tt><big>(</big>unsigned<em>&nbsp;sink_num</em>, enum avb_stream_format_t<em>&nbsp;&amp;format</em>, int<em>&nbsp;&amp;rate</em><big>)</big></h2>
+<p>Get the format of an AVB sink.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>sink_num</h2>
+<p>the local sink number</p>
+</li>
+<li><h2>format</h2>
+<p>the format of the stream</p>
+</li>
+<li><h2>rate</h2>
+<p>the sample rate of the stream in Hz</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::set_sink_format">
+int <tt class="descname">set_sink_format</tt><big>(</big>unsigned<em>&nbsp;sink_num</em>, enum avb_stream_format_t<em>&nbsp;format</em>, int<em>&nbsp;rate</em><big>)</big></h2>
+<p>Set the format of an AVB sink.</p>
+<p>The AVB sink format covers the encoding and sample rate of the sink. Currently the format is limited to a single encoding MBLA 24 bit signed integers.</p>
+<p>This setting will not take effect until the next time the sink state moves from disabled to potential.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>sink_num</h2>
+<p>the local sink number</p>
+</li>
+<li><h2>format</h2>
+<p>the format of the stream</p>
+</li>
+<li><h2>rate</h2>
+<p>the sample rate of the stream in Hz</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::get_sink_channels">
+int <tt class="descname">get_sink_channels</tt><big>(</big>unsigned<em>&nbsp;sink_num</em>, int<em>&nbsp;&amp;channels</em><big>)</big></h2>
+<p>Get the channel count of an AVB sink.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>sink_num</h2>
+<p>the local sink number</p>
+</li>
+<li><h2>channels</h2>
+<p>the number of channels</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::set_sink_channels">
+int <tt class="descname">set_sink_channels</tt><big>(</big>unsigned<em>&nbsp;sink_num</em>, int<em>&nbsp;channels</em><big>)</big></h2>
+<p>Set the channel count of an AVB sink.</p>
+<p>Sets the number of channels in the stream.</p>
+<p>This setting will not take effect until the next time the sink state moves from disabled to potential.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>sink_num</h2>
+<p>the local sink number</p>
+</li>
+<li><h2>channels</h2>
+<p>the number of channels</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::get_sink_sync">
+int <tt class="descname">get_sink_sync</tt><big>(</big>unsigned<em>&nbsp;sink_num</em>, int<em>&nbsp;&amp;sync</em><big>)</big></h2>
+<p>Get the media clock of an AVB sink.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>sink_num</h2>
+<p>the local sink number</p>
+</li>
+<li><h2>sync</h2>
+<p>the media clock number</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::set_sink_sync">
+int <tt class="descname">set_sink_sync</tt><big>(</big>unsigned<em>&nbsp;sink_num</em>, int<em>&nbsp;sync</em><big>)</big></h2>
+<p>Set the media clock of an AVB sink.</p>
+<p>Sets the media clock of the stream.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>sink_num</h2>
+<p>the local sink number</p>
+</li>
+<li><h2>sync</h2>
+<p>the media clock number</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::get_sink_vlan">
+int <tt class="descname">get_sink_vlan</tt><big>(</big>unsigned<em>&nbsp;sink_num</em>, int<em>&nbsp;&amp;vlan</em><big>)</big></h2>
+<p>Get the virtual lan id of an AVB sink.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>sink_num</h2>
+<p>the number of the sink</p>
+</li>
+<li><h2>vlan</h2>
+<p>the vlan id of the sink</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::set_sink_vlan">
+int <tt class="descname">set_sink_vlan</tt><big>(</big>unsigned<em>&nbsp;sink_num</em>, int<em>&nbsp;vlan</em><big>)</big></h2>
+<p>Set the virtual lan id of an AVB sink.</p>
+<p>Sets the vlan id of the incoming stream.</p>
+<p>This setting will not take effect until the next time the sink state moves from disabled to potential.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>sink_num</h2>
+<p>the number of the sink</p>
+</li>
+<li><h2>vlan</h2>
+<p>the vlan id of the sink</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::get_sink_addr">
+int <tt class="descname">get_sink_addr</tt><big>(</big>unsigned<em>&nbsp;sink_num</em>, unsigned char<em>&nbsp;addr[]</em>, int<em>&nbsp;&amp;len</em><big>)</big></h2>
+<p>Get the incoming destination mac address of an avb sink.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>sink_num</h2>
+<p>The local sink number</p>
+</li>
+<li><h2>addr</h2>
+<p>The mac address as an array of 6 bytes.</p>
+</li>
+<li><h2>len</h2>
+<p>The length of the address, should always be equal to 6.</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::set_sink_addr">
+int <tt class="descname">set_sink_addr</tt><big>(</big>unsigned<em>&nbsp;sink_num</em>, unsigned char<em>&nbsp;addr[len]</em>, unsigned<em>&nbsp;len</em><big>)</big></h2>
+<p>Set the incoming destination mac address of an avb sink.</p>
+<p>Set the incoming destination mac address of a sink. This needs to be set if the address is a multicast address so the endpoint can register for that multicast group with the switch.</p>
+<p>This setting will not take effect until the next time the sink state moves from disabled to potential.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>sink_num</h2>
+<p>The local sink number</p>
+</li>
+<li><h2>addr</h2>
+<p>The mac address as an array of 6 bytes.</p>
+</li>
+<li><h2>len</h2>
+<p>The length of the address, should always be equal to 6.</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::get_sink_state">
+int <tt class="descname">get_sink_state</tt><big>(</big>unsigned<em>&nbsp;sink_num</em>, enum avb_sink_state_t<em>&nbsp;&amp;state</em><big>)</big></h2>
+<p>Get the state of an AVB sink.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>sink_num</h2>
+<p>the number of the sink</p>
+</li>
+<li><h2>state</h2>
+<p>the state of the sink</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::set_sink_state">
+int <tt class="descname">set_sink_state</tt><big>(</big>unsigned<em>&nbsp;sink_num</em>, enum avb_sink_state_t<em>&nbsp;state</em><big>)</big></h2>
+<p>Set the state of an AVB sink.</p>
+<p>Sets the current state of an AVB sink. You cannot set the state to <tt class="docutils literal"><span class="pre">ENABLED</span></tt>. Changing the state to <tt class="docutils literal"><span class="pre">POTENTIAL</span></tt> turns the stream on and it will automatically change to <tt class="docutils literal"><span class="pre">ENABLED</span></tt> when connected to a talker and receiving samples.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>sink_num</h2>
+<p>the number of the sink</p>
+</li>
+<li><h2>state</h2>
+<p>the state of the sink</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::get_sink_map">
+int <tt class="descname">get_sink_map</tt><big>(</big>unsigned<em>&nbsp;sink_num</em>, int<em>&nbsp;map[]</em>, int<em>&nbsp;&amp;len</em><big>)</big></h2>
+<p>Get the map of an AVB sink.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>sink_num</h2>
+<p>the number of the sink</p>
+</li>
+<li><h2>map</h2>
+<p>array containing the media output FIFOs that the stream will be split into</p>
+</li>
+<li><h2>len</h2>
+<p>the length of the map; should equal to the number of channels in the stream</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::set_sink_map">
+int <tt class="descname">set_sink_map</tt><big>(</big>unsigned<em>&nbsp;sink_num</em>, int<em>&nbsp;map[len]</em>, unsigned<em>&nbsp;len</em><big>)</big></h2>
+<p>Set the map of an AVB sink.</p>
+<p>Sets the map i.e. the mapping from the 1722 stream to output FIFOs.</p>
+<p>This setting will not take effect until the next time the sink state moves from disabled to potential.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>sink_num</h2>
+<p>the number of the sink</p>
+</li>
+<li><h2>map</h2>
+<p>array containing the media output FIFOs that the stream will be split into</p>
+</li>
+<li><h2>len</h2>
+<p>the length of the map; should equal to the number of channels in the stream</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::get_device_media_clock_rate">
+int <tt class="descname">get_device_media_clock_rate</tt><big>(</big>int<em>&nbsp;clock_num</em>, int<em>&nbsp;&amp;rate</em><big>)</big></h2>
+<p>Get the rate of a media clock.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>clock_num</h2>
+<p>the number of the media clock</p>
+</li>
+<li><h2>rate</h2>
+<p>the rate of the clock in Hz</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::set_device_media_clock_rate">
+int <tt class="descname">set_device_media_clock_rate</tt><big>(</big>int<em>&nbsp;clock_num</em>, int<em>&nbsp;rate</em><big>)</big></h2>
+<p>Set the rate of a media clock.</p>
+<p>Sets the rate of the media clock.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>clock_num</h2>
+<p>the number of the media clock</p>
+</li>
+<li><h2>rate</h2>
+<p>the rate of the clock in Hz</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::get_device_media_clock_state">
+int <tt class="descname">get_device_media_clock_state</tt><big>(</big>int<em>&nbsp;clock_num</em>, enum <a class="reference" href="#device_media_clock_state_t" title="device_media_clock_state_t"><span>device_media_clock_state_t</span></a><em>&nbsp;&amp;state</em><big>)</big></h2>
+<p>Get the state of a media clock.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>clock_num</h2>
+<p>the number of the media clock</p>
+</li>
+<li><h2>state</h2>
+<p>the state of the clock</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::set_device_media_clock_state">
+int <tt class="descname">set_device_media_clock_state</tt><big>(</big>int<em>&nbsp;clock_num</em>, enum <a class="reference" href="#device_media_clock_state_t" title="device_media_clock_state_t"><span>device_media_clock_state_t</span></a><em>&nbsp;state</em><big>)</big></h2>
+<p>Set the state of a media clock.</p>
+<p>This function can be used to enabled/disable a media clock.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>clock_num</h2>
+<p>the number of the media clock</p>
+</li>
+<li><h2>state</h2>
+<p>the state of the clock</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::get_device_media_clock_source">
+int <tt class="descname">get_device_media_clock_source</tt><big>(</big>int<em>&nbsp;clock_num</em>, int<em>&nbsp;&amp;source</em><big>)</big></h2>
+<p>Get the source of a media clock.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>clock_num</h2>
+<p>the number of the media clock</p>
+</li>
+<li><h2>source</h2>
+<p>the output FIFO number to base the clock on</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::set_device_media_clock_source">
+int <tt class="descname">set_device_media_clock_source</tt><big>(</big>int<em>&nbsp;clock_num</em>, int<em>&nbsp;source</em><big>)</big></h2>
+<p>Set the source of a media clock.</p>
+<p>For clocks that are derived from an output FIFO. This function gets/sets which FIFO the clock should be derived from.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>clock_num</h2>
+<p>the number of the media clock</p>
+</li>
+<li><h2>source</h2>
+<p>the output FIFO number to base the clock on</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::get_device_media_clock_type">
+int <tt class="descname">get_device_media_clock_type</tt><big>(</big>int<em>&nbsp;clock_num</em>, enum <a class="reference" href="#device_media_clock_type_t" title="device_media_clock_type_t"><span>device_media_clock_type_t</span></a><em>&nbsp;&amp;clock_type</em><big>)</big></h2>
+<p>Get the type of a media clock.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>clock_num</h2>
+<p>the number of the media clock</p>
+</li>
+<li><h2>clock_type</h2>
+<p>the type of the clock</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="__extends__avb_interface::set_device_media_clock_type">
+int <tt class="descname">set_device_media_clock_type</tt><big>(</big>int<em>&nbsp;clock_num</em>, enum <a class="reference" href="#device_media_clock_type_t" title="device_media_clock_type_t"><span>device_media_clock_type_t</span></a><em>&nbsp;clock_type</em><big>)</big></h2>
+<p>Set the type of a media clock.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>clock_num</h2>
+<p>the number of the media clock</p>
+</li>
+<li><h2>clock_type</h2>
+<p>the type of the clock</p>
+</li>
+</ul>
+</div></li>
+
+</ul></li>
+
+</ul></div><h3 id="controller-commands">1722.1 Controller commands</h3>
+<div><ul class='lib'><li class="function">
+<h2 id="avb_1722_1_controller_connect">
+void <tt class="descname">avb_1722_1_controller_connect</tt><big>(</big>const_guid_ref_t<em>&nbsp;talker_guid</em>, const_guid_ref_t<em>&nbsp;listener_guid</em>, int<em>&nbsp;talker_id</em>, int<em>&nbsp;listener_id</em>, chanend<em>&nbsp;c_tx</em><big>)</big></h2>
+<p>Setup a new stream connection between a Talker and Listener entity.</p>
+<p>The Controller shall send a CONNECT_RX_COMMAND to the Listener Entity. The Listener Entity shall then send a CONNECT_TX_COMMAND to the Talker Entity.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>talker_guid</h2>
+<p>the GUID of the Talker being targeted by the command</p>
+</li>
+<li><h2>listener_guid</h2>
+<p>the GUID of the Listener being targeted by the command</p>
+</li>
+<li><h2>talker_id</h2>
+<p>the unique id of the Talker stream source to connect. For entities using AEM, this corresponds to the id of the STREAM_OUTPUT descriptor</p>
+</li>
+<li><h2>listener_id</h2>
+<p>the unique id of the Listener stream source to connect. For entities using AEM, this corresponds to the id of the STREAM_INPUT descriptor</p>
+</li>
+<li><h2>c_tx</h2>
+<p>a transmit chanend to the Ethernet server</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="avb_1722_1_controller_disconnect">
+void <tt class="descname">avb_1722_1_controller_disconnect</tt><big>(</big>const_guid_ref_t<em>&nbsp;talker_guid</em>, const_guid_ref_t<em>&nbsp;listener_guid</em>, int<em>&nbsp;talker_id</em>, int<em>&nbsp;listener_id</em>, chanend<em>&nbsp;c_tx</em><big>)</big></h2>
+<p>Disconnect an existing stream connection between a Talker and Listener entity.</p>
+<p>The Controller shall send a DISCONNECT_RX_COMMAND to the Listener Entity. The Listener Entity shall then send a DISCONNECT_TX_COMMAND to the Talker Entity.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>talker_guid</h2>
+<p>the GUID of the Talker being targeted by the command</p>
+</li>
+<li><h2>listener_guid</h2>
+<p>the GUID of the Listener being targeted by the command</p>
+</li>
+<li><h2>talker_id</h2>
+<p>the unique id of the Talker stream source to disconnect. For entities using AEM, this corresponds to the id of the STREAM_OUTPUT descriptor</p>
+</li>
+<li><h2>listener_id</h2>
+<p>the unique id of the Listener stream source to disconnect. For entities using AEM, this corresponds to the id of the STREAM_INPUT descriptor</p>
+</li>
+<li><h2>c_tx</h2>
+<p>a transmit chanend to the Ethernet server</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="avb_1722_1_controller_disconnect_all_listeners">
+void <tt class="descname">avb_1722_1_controller_disconnect_all_listeners</tt><big>(</big>int<em>&nbsp;talker_id</em>, chanend<em>&nbsp;c_tx</em><big>)</big></h2>
+<p>Disconnect all Listener sinks currently connected to the Talker stream source with <tt class="docutils literal"><span class="pre">talker_id</span></tt>.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>talker_id</h2>
+<p>the unique id of the Talker stream source to disconnect its listeners. For entities using AEM, this corresponds to the id of the STREAM_OUTPUT descriptor</p>
+</li>
+<li><h2>c_tx</h2>
+<p>a transmit chanend to the Ethernet server</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="avb_1722_1_controller_disconnect_talker">
+void <tt class="descname">avb_1722_1_controller_disconnect_talker</tt><big>(</big>int<em>&nbsp;listener_id</em>, chanend<em>&nbsp;c_tx</em><big>)</big></h2>
+<p>Disconnect the Talker source currently connected to the Listener stream sink with <tt class="docutils literal"><span class="pre">listener_id</span></tt>.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>listener_id</h2>
+<p>the unique id of the Listener stream source to disconnect its Talker. For entities using AEM, this corresponds to the id of the STREAM_INPUT descriptor</p>
+</li>
+<li><h2>c_tx</h2>
+<p>a transmit chanend to the Ethernet server</p>
+</li>
+</ul>
+</div></li>
+
+</ul></div><h3 id="discovery-commands">1722.1 Discovery commands</h3>
+<div><ul class='lib'><li class="function">
+<h2 id="avb_1722_1_adp_announce">
+void <tt class="descname">avb_1722_1_adp_announce</tt><big>(</big>void<big>)</big></h2>
+<p>Start advertising information about this entity via ADP.</p>
+</li>
+
+<li class="function">
+<h2 id="avb_1722_1_adp_depart">
+void <tt class="descname">avb_1722_1_adp_depart</tt><big>(</big>void<big>)</big></h2>
+<p>Stop advertising information about this entity via ADP.</p>
+</li>
+
+<li class="function">
+<h2 id="avb_1722_1_adp_discover">
+void <tt class="descname">avb_1722_1_adp_discover</tt><big>(</big>const_guid_ref_t<em>&nbsp;guid</em><big>)</big></h2>
+<p>Ask to discover the information for a specific entity GUID.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>guid</h2>
+<p>The GUID of the entity to discover</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="avb_1722_1_adp_discover_all">
+void <tt class="descname">avb_1722_1_adp_discover_all</tt><big>(</big>void<big>)</big></h2>
+<p>Ask to discover all available entities via ADP.</p>
+</li>
+
+<li class="function">
+<h2 id="avb_1722_1_entity_database_flush">
+void <tt class="descname">avb_1722_1_entity_database_flush</tt><big>(</big>void<big>)</big></h2>
+<p>Remove all discovered entities from the database.</p>
+</li>
+
+</ul></div><h3 id="application-hooks">1722.1 application hooks</h3>
+<div><p>These hooks are called on events that can be acted upon by the application. They can be overridden by
+user defined hooks of the same name to perform custom functionality not present in the core stack.</p>
+<ul class='lib'><li class="type">
+<h2 id="avb_1722_1_entity_record">
+<tt class="descname">avb_1722_1_entity_record</tt></h2>
+<p><strong>Structure Members:</strong></p>
+<ul class='lib'><li class="member">
+<h2 id="avb_1722_1_entity_record.guid">
+guid_t <tt class="descname">guid</tt></h2>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_entity_record.vendor_id">
+unsigned int <tt class="descname">vendor_id</tt></h2>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_entity_record.entity_model_id">
+unsigned int <tt class="descname">entity_model_id</tt></h2>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_entity_record.capabilities">
+unsigned int <tt class="descname">capabilities</tt></h2>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_entity_record.talker_stream_sources">
+unsigned short <tt class="descname">talker_stream_sources</tt></h2>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_entity_record.talker_capabilities">
+unsigned short <tt class="descname">talker_capabilities</tt></h2>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_entity_record.listener_stream_sinks">
+unsigned short <tt class="descname">listener_stream_sinks</tt></h2>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_entity_record.listener_capabilities">
+unsigned short <tt class="descname">listener_capabilities</tt></h2>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_entity_record.controller_capabilities">
+unsigned int <tt class="descname">controller_capabilities</tt></h2>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_entity_record.available_index">
+unsigned int <tt class="descname">available_index</tt></h2>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_entity_record.gptp_grandmaster_id">
+gmid_t <tt class="descname">gptp_grandmaster_id</tt></h2>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_entity_record.gptp_domain_number">
+unsigned char <tt class="descname">gptp_domain_number</tt></h2>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_entity_record.identify_control_index">
+unsigned short <tt class="descname">identify_control_index</tt></h2>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_entity_record.association_id">
+unsigned int <tt class="descname">association_id</tt></h2>
+</li>
+
+<li class="member">
+<h2 id="avb_1722_1_entity_record.timeout">
+unsigned <tt class="descname">timeout</tt></h2>
+</li>
+
+</ul></li>
+
+<li class="function">
+<h2 id="avb_entity_on_new_entity_available">
+void <tt class="descname">avb_entity_on_new_entity_available</tt><big>(</big>client interface <a class="reference" href="#avb_interface" title="avb_interface"><span>avb_interface</span></a><em>&nbsp;i_avb</em>, const_guid_ref_t<em>&nbsp;my_guid</em>, <a class="reference" href="#avb_1722_1_entity_record" title="avb_1722_1_entity_record"><span>avb_1722_1_entity_record</span></a><em>&nbsp;*entity</em>, chanend<em>&nbsp;c_tx</em><big>)</big></h2>
+<p>A new AVDECC entity has advertised itself as available.</p>
+<p>It may be an entity starting up or a previously seen entity that had timed out.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>i_avb</h2>
+<p>client interface of type <tt class="docutils literal"><span class="pre">avb_interface</span></tt> into <a class="reference" href="#avb_manager" title="avb_manager"><span>avb_manager()</span></a>
+</p>
+</li>
+<li><h2>my_guid</h2>
+<p>The GUID of this entity</p>
+</li>
+<li><h2>entity</h2>
+<p>The information advertised by the remote entity</p>
+</li>
+<li><h2>c_tx</h2>
+<p>A transmit channel end to the Ethernet server</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="avb_talker_on_listener_connect">
+void <tt class="descname">avb_talker_on_listener_connect</tt><big>(</big>client interface <a class="reference" href="#avb_interface" title="avb_interface"><span>avb_interface</span></a><em>&nbsp;i_avb</em>, int<em>&nbsp;source_num</em>, const_guid_ref_t<em>&nbsp;listener_guid</em><big>)</big></h2>
+<p>A Controller has indicated that a Listener is connecting to this Talker stream source.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>i_avb</h2>
+<p>client interface of type <tt class="docutils literal"><span class="pre">avb_interface</span></tt> into <a class="reference" href="#avb_manager" title="avb_manager"><span>avb_manager()</span></a>
+</p>
+</li>
+<li><h2>source_num</h2>
+<p>The local id of the Talker stream source</p>
+</li>
+<li><h2>listener_guid</h2>
+<p>The GUID of the Listener entity that is connecting</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="avb_talker_on_listener_disconnect">
+void <tt class="descname">avb_talker_on_listener_disconnect</tt><big>(</big>client interface <a class="reference" href="#avb_interface" title="avb_interface"><span>avb_interface</span></a><em>&nbsp;i_avb</em>, int<em>&nbsp;source_num</em>, const_guid_ref_t<em>&nbsp;listener_guid</em>, int<em>&nbsp;connection_count</em><big>)</big></h2>
+<p>A Controller has indicated that a Listener is disconnecting from this Talker stream source.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>i_avb</h2>
+<p>client interface of type <tt class="docutils literal"><span class="pre">avb_interface</span></tt> into <a class="reference" href="#avb_manager" title="avb_manager"><span>avb_manager()</span></a>
+</p>
+</li>
+<li><h2>source_num</h2>
+<p>The local id of the Talker stream source</p>
+</li>
+<li><h2>listener_guid</h2>
+<p>The GUID of the Listener entity that is disconnecting</p>
+</li>
+<li><h2>connection_count</h2>
+<p>The number of connections a Talker thinks it has on it’s stream source, i.e. the number of connect TX stream commands it has received less the number of disconnect TX stream commands it has received. This number may not be accurate since an AVDECC Entity may not have sent a disconnect command if the cable was disconnected or the AVDECC Entity abruptly powered down.</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="avb_listener_on_talker_connect">
+avb_1722_1_acmp_status_t <tt class="descname">avb_listener_on_talker_connect</tt><big>(</big>client interface <a class="reference" href="#avb_interface" title="avb_interface"><span>avb_interface</span></a><em>&nbsp;i_avb</em>, int<em>&nbsp;sink_num</em>, const_guid_ref_t<em>&nbsp;talker_guid</em>, unsigned char<em>&nbsp;dest_addr[6]</em>, unsigned int<em>&nbsp;stream_id[2]</em>, const_guid_ref_t<em>&nbsp;my_guid</em><big>)</big></h2>
+<p>A Controller has indicated to connect this Listener sink to a Talker stream.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>i_avb</h2>
+<p>client interface of type <tt class="docutils literal"><span class="pre">avb_interface</span></tt> into <a class="reference" href="#avb_manager" title="avb_manager"><span>avb_manager()</span></a>
+</p>
+</li>
+<li><h2>sink_num</h2>
+<p>The local id of the Listener stream sink</p>
+</li>
+<li><h2>talker_guid</h2>
+<p>The GUID of the Talker entity that is connecting</p>
+</li>
+<li><h2>dest_addr</h2>
+<p>The destination MAC address of the Talker stream</p>
+</li>
+<li><h2>stream_id</h2>
+<p>The 64 bit Stream ID of the Talker stream</p>
+</li>
+<li><h2>my_guid</h2>
+<p>The GUID of this entity</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="avb_listener_on_talker_disconnect">
+void <tt class="descname">avb_listener_on_talker_disconnect</tt><big>(</big>client interface <a class="reference" href="#avb_interface" title="avb_interface"><span>avb_interface</span></a><em>&nbsp;i_avb</em>, int<em>&nbsp;sink_num</em>, const_guid_ref_t<em>&nbsp;talker_guid</em>, unsigned char<em>&nbsp;dest_addr[6]</em>, unsigned int<em>&nbsp;stream_id[2]</em>, const_guid_ref_t<em>&nbsp;my_guid</em><big>)</big></h2>
+<p>A Controller has indicated to disconnect this Listener sink from a Talker stream.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>i_avb</h2>
+<p>client interface of type <tt class="docutils literal"><span class="pre">avb_interface</span></tt> into <a class="reference" href="#avb_manager" title="avb_manager"><span>avb_manager()</span></a>
+</p>
+</li>
+<li><h2>sink_num</h2>
+<p>The local id of the Listener stream sink</p>
+</li>
+<li><h2>talker_guid</h2>
+<p>The GUID of the Talker entity that is disconnecting</p>
+</li>
+<li><h2>dest_addr</h2>
+<p>The destination MAC address of the Talker stream</p>
+</li>
+<li><h2>stream_id</h2>
+<p>The 64 bit Stream ID of the Talker stream</p>
+</li>
+<li><h2>my_guid</h2>
+<p>The GUID of this entity</p>
+</li>
+</ul>
+</div></li>
+
+</ul></div></div><h2 class="topic" id="descriptors"><span id="sec-1722-1-aem"></span>1722.1 descriptors</h2>
+<div><p>The XMOS AVB reference design provides an AVDECC Entity Model (AEM) consisting of descriptors to describe the internal components
+of the Entity. For a complete overview of AEM, see section 7 of the 1722.1 specification.</p>
+<p>An AEM descriptor is a fixed field structure followed by variable length data which describes an object in the AEM
+Entity model. The maximum length of a descriptor is 508 octets.</p>
+<p>All descriptors share two common fields which are used to uniquely identify a descriptor by a type and an index.
+AEM defines a number of descriptors for specific parts of the Entity model. The descriptor types that XMOS currently provide in the
+reference design are listed in the table below.</p>
+<h3 id="editing-descriptors">Editing descriptors</h3>
+<div><p>The descriptors are declared in the a header configuration file named
+<tt class="docutils literal"><span class="pre">aem_descriptors.h.in</span></tt> within the <tt class="docutils literal"><span class="pre">src/</span></tt> directory of the application.
+The XMOS Reference column in the table refers to the array names of the descriptors in this file.</p>
+<p>This file is post-processed by a script in the build stage to expand strings to 64 octet padded with zeros.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="24%" />
+<col width="43%" />
+<col width="33%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head"><p>Name</p>
+</th>
+<th class="head"><p>Description</p>
+</th>
+<th class="head"><p>XMOS Reference</p>
+</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><p>ENTITY</p>
+</td>
+<td><p>This is the top level descriptor defining the Entity.</p>
+</td>
+<td><p><tt class="docutils literal"><span class="pre">desc_entity</span></tt></p>
+</td>
+</tr>
+<tr><td><p>CONFIGURATION</p>
+</td>
+<td><p>This is the descriptor defining a configuration of the Entity.</p>
+</td>
+<td><p><tt class="docutils literal"><span class="pre">desc_configuration_0</span></tt></p>
+</td>
+</tr>
+<tr><td><p>AUDIO_UNIT</p>
+</td>
+<td><p>This is the descriptor defining an audio unit.</p>
+</td>
+<td><p><tt class="docutils literal"><span class="pre">desc_audio_unit_0</span></tt></p>
+</td>
+</tr>
+<tr><td><p>STREAM_INPUT</p>
+</td>
+<td><p>This is the descriptor defining an input stream to the Entity.</p>
+</td>
+<td><p><tt class="docutils literal"><span class="pre">desc_stream_input_0</span></tt></p>
+</td>
+</tr>
+<tr><td><p>STREAM_OUTPUT</p>
+</td>
+<td><p>This is the descriptor defining an output stream from the Entity.</p>
+</td>
+<td><p><tt class="docutils literal"><span class="pre">desc_stream_output_0</span></tt></p>
+</td>
+</tr>
+<tr><td><p>JACK_INPUT</p>
+</td>
+<td><p>This is the descriptor defining an input jack on the Entity.</p>
+</td>
+<td><p><tt class="docutils literal"><span class="pre">desc_jack_input_0</span></tt></p>
+</td>
+</tr>
+<tr><td><p>JACK_OUTPUT</p>
+</td>
+<td><p>This is the descriptor defining an output jack on the Entity.</p>
+</td>
+<td><p><tt class="docutils literal"><span class="pre">desc_jack_output_0</span></tt></p>
+</td>
+</tr>
+<tr><td><p>AVB_INTERFACE</p>
+</td>
+<td><p>This is the descriptor defining an AVB interface.</p>
+</td>
+<td><p><tt class="docutils literal"><span class="pre">desc_avb_interface_0</span></tt></p>
+</td>
+</tr>
+<tr><td><p>CLOCK_SOURCE</p>
+</td>
+<td><p>This is the descriptor describing a clock source.</p>
+</td>
+<td><p><tt class="docutils literal"><span class="pre">desc_clock_source_0..1</span></tt></p>
+</td>
+</tr>
+<tr><td><p>LOCALE</p>
+</td>
+<td><p>This is the descriptor defining a locale.</p>
+</td>
+<td><p><tt class="docutils literal"><span class="pre">desc_locale_0</span></tt></p>
+</td>
+</tr>
+<tr><td><p>STRINGS</p>
+</td>
+<td><p>This is the descriptor defining localized strings.</p>
+</td>
+<td><p><tt class="docutils literal"><span class="pre">desc_strings_0</span></tt></p>
+</td>
+</tr>
+<tr><td><p>STREAM_PORT_INPUT</p>
+</td>
+<td><p>This is the descriptor defining an input stream port on a unit.</p>
+</td>
+<td><p><tt class="docutils literal"><span class="pre">desc_stream_port_input_0</span></tt></p>
+</td>
+</tr>
+<tr><td><p>STREAM_PORT_OUTPUT</p>
+</td>
+<td><p>This is the descriptor defining an output stream port on a unit.</p>
+</td>
+<td><p><tt class="docutils literal"><span class="pre">desc_stream_port_output_0</span></tt></p>
+</td>
+</tr>
+<tr><td><p>EXTERNAL_PORT_INPUT</p>
+</td>
+<td><p>This is the descriptor defining an input external port on a unit.</p>
+</td>
+<td><p><tt class="docutils literal"><span class="pre">desc_external_input_port_0</span></tt></p>
+</td>
+</tr>
+<tr><td><p>EXTERNAL_PORT_OUTPUT</p>
+</td>
+<td><p>This is the descriptor defining an output external port on a unit.</p>
+</td>
+<td><p><tt class="docutils literal"><span class="pre">desc_external_output_port_0</span></tt></p>
+</td>
+</tr>
+<tr><td><p>AUDIO_CLUSTER</p>
+</td>
+<td><p>This is the descriptor defining a cluster of channels within an audio stream.</p>
+</td>
+<td><p><tt class="docutils literal"><span class="pre">desc_audio_cluster_0..N</span></tt></p>
+</td>
+</tr>
+<tr><td><p>AUDIO_MAP</p>
+</td>
+<td><p>This is the descriptor defining the mapping between the channels of an audio stream and the channels of the audio port.</p>
+</td>
+<td><p><tt class="docutils literal"><span class="pre">desc_audio_map_0..N</span></tt></p>
+</td>
+</tr>
+<tr><td><p>CLOCK_DOMAIN</p>
+</td>
+<td><p>This is the descriptor describing a clock domain.</p>
+</td>
+<td><p><tt class="docutils literal"><span class="pre">desc_clock_domain_0</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+</div><h3 id="adding-and-removing-descriptors">Adding and removing descriptors</h3>
+<div><p>Descriptors are indexed by a descriptor list named <tt class="docutils literal"><span class="pre">aem_descriptor_list</span></tt> in the <tt class="docutils literal"><span class="pre">aem_descriptors.h.in</span></tt> file.</p>
+<p>The format for this list is as follows:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="100%" />
+</colgroup>
+<tbody valign="top">
+<tr><td><p>Descriptor type</p>
+</td>
+</tr>
+<tr><td><p>Number of descriptors of type (N)</p>
+</td>
+</tr>
+<tr><td><p>Size of descriptor 0 (bytes)</p>
+</td>
+</tr>
+<tr><td><p>Address of descriptor 0</p>
+</td>
+</tr>
+<tr><td><p><tt class="docutils literal"><span class="pre">...</span></tt></p>
+</td>
+</tr>
+<tr><td><p>Size of descriptor N (bytes)</p>
+</td>
+</tr>
+<tr><td><p>Address of descriptor N</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>For example:</p>
+<p><tt class="docutils literal"><span class="pre">AEM_ENTITY_TYPE</span></tt>, <tt class="docutils literal"><span class="pre">1</span></tt>, <tt class="docutils literal"><span class="pre">sizeof(desc_entity)</span></tt>, <tt class="docutils literal"><span class="pre">(unsigned)desc_entity</span></tt></p>
+</div></div><h2 class="topic" id="ptp-client-api"><span id="sec-ptp-api"></span>PTP client API</h2>
+<div><p>The PTP client API can be used if you want extra information about the PTP
+time domain. An application does not need to directly use this to
+control the AVB endpoint since the talker, listener and media clock
+server units communicate with the PTP server directly.</p>
+<h3 id="time-data-structures">Time data structures</h3>
+<div><ul class='lib'><li class="type">
+<h2 id="ptp_timestamp">
+<tt class="descname">ptp_timestamp</tt></h2>
+<p>This type represents a timestamp in the gptp clock domain.</p>
+<p><strong>Structure Members:</strong></p>
+<ul class='lib'><li class="member">
+<h2 id="ptp_timestamp.seconds">
+unsigned int <tt class="descname">seconds</tt></h2>
+</li>
+
+<li class="member">
+<h2 id="ptp_timestamp.nanoseconds">
+unsigned int <tt class="descname">nanoseconds</tt></h2>
+</li>
+
+</ul></li>
+
+</ul></div><h3 id="getting-ptp-time-information">Getting PTP time information</h3>
+<div><ul class='lib'><li class="type">
+<h2 id="ptp_time_info">
+<tt class="descname">ptp_time_info</tt></h2>
+<p>This type is used to relate local XCore time with gptp time.</p>
+<p>It can be retrieved from the PTP server using the <a class="reference" href="#ptp_get_time_info" title="ptp_get_time_info"><span>ptp_get_time_info()</span></a> function.</p>
+</li>
+
+<li class="type">
+<h2 id="ptp_time_info_mod64">
+<tt class="descname">ptp_time_info_mod64</tt></h2>
+<p>This structure is used to relate local XCore time with the least significant 64 bits of gptp time.</p>
+<p>The 64 bits of time is the PTP time in nanoseconds from the epoch.</p>
+<p>It can be retrieved from the PTP server using the <a class="reference" href="#ptp_get_time_info_mod64" title="ptp_get_time_info_mod64"><span>ptp_get_time_info_mod64()</span></a> function.</p>
+</li>
+
+<li class="function">
+<h2 id="ptp_get_time_info">
+void <tt class="descname">ptp_get_time_info</tt><big>(</big>chanend<em>&nbsp;ptp_server</em>, <a class="reference" href="#ptp_time_info" title="ptp_time_info"><span>ptp_time_info</span></a><em>&nbsp;&amp;info</em><big>)</big></h2>
+<p>Retrieve port progatation delay from the ptp server.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>ptp_server</h2>
+<p>chanend connected to the ptp_server</p>
+</li>
+<li><h2>pdelay</h2>
+<p>unsigned int with delay in ns</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="ptp_get_time_info_mod64">
+void <tt class="descname">ptp_get_time_info_mod64</tt><big>(</big>chanend<em>&nbsp;?ptp_server</em>, <a class="reference" href="#ptp_time_info_mod64" title="ptp_time_info_mod64"><span>ptp_time_info_mod64</span></a><em>&nbsp;&amp;info</em><big>)</big></h2>
+<p>Retrieve time information from the ptp server.</p>
+<p>This function gets an up-to-date structure of type <cite>ptp_time_info_mod64</cite> to use to convert local time to ptp time (modulo 64 bits).</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>ptp_server</h2>
+<p>chanend connected to the ptp_server</p>
+</li>
+<li><h2>info</h2>
+<p>structure to be filled with time information</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="ptp_request_time_info">
+void <tt class="descname">ptp_request_time_info</tt><big>(</big>chanend<em>&nbsp;ptp_server</em><big>)</big></h2>
+<p>This function requests a <cite>ptp_time_info</cite> structure from the PTP server.</p>
+<p>This is an asynchronous call so needs to be completed later with a call to <a class="reference" href="#ptp_get_requested_time_info" title="ptp_get_requested_time_info"><span>ptp_get_requested_time_info()</span></a>.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>ptp_server</h2>
+<p>chanend connecting to the ptp server</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="ptp_request_time_info_mod64">
+void <tt class="descname">ptp_request_time_info_mod64</tt><big>(</big>chanend<em>&nbsp;ptp_server</em><big>)</big></h2>
+<p>This function requests a <cite>ptp_time_info_mod64</cite> structure from the PTP server.</p>
+<p>This is an asynchronous call so needs to be completed later with a call to <a class="reference" href="#ptp_get_requested_time_info_mod64" title="ptp_get_requested_time_info_mod64"><span>ptp_get_requested_time_info_mod64()</span></a>.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>ptp_server</h2>
+<p>chanend connecting to the PTP server</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="ptp_get_requested_time_info">
+void <tt class="descname">ptp_get_requested_time_info</tt><big>(</big>chanend<em>&nbsp;ptp_server</em>, <a class="reference" href="#ptp_time_info" title="ptp_time_info"><span>ptp_time_info</span></a><em>&nbsp;&amp;info</em><big>)</big></h2>
+<p>This function receives a <cite>ptp_time_info</cite> structure from the PTP server.</p>
+<p>This completes an asynchronous transaction initiated with a call to <a class="reference" href="#ptp_request_time_info" title="ptp_request_time_info"><span>ptp_request_time_info()</span></a>. The function can be placed in a select case which will activate when the PTP server is ready to send.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>ptp_server</h2>
+<p>chanend connecting to the PTP server</p>
+</li>
+<li><h2>info</h2>
+<p>a reference parameter to be filled with the time information structure</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="ptp_get_requested_time_info_mod64">
+void <tt class="descname">ptp_get_requested_time_info_mod64</tt><big>(</big>chanend<em>&nbsp;ptp_server</em>, <a class="reference" href="#ptp_time_info_mod64" title="ptp_time_info_mod64"><span>ptp_time_info_mod64</span></a><em>&nbsp;&amp;info</em><big>)</big></h2>
+<p>This function receives a <cite>ptp_time_info_mod64</cite> structure from the PTP server.</p>
+<p>This completes an asynchronous transaction initiated with a call to <a class="reference" href="#ptp_request_time_info_mod64" title="ptp_request_time_info_mod64"><span>ptp_request_time_info_mod64()</span></a>. The function can be placed in a select case which will activate when the PTP server is ready to send.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>ptp_server</h2>
+<p>chanend connecting to the PTP server</p>
+</li>
+<li><h2>info</h2>
+<p>a reference parameter to be filled with the time information structure</p>
+</li>
+</ul>
+</div></li>
+
+</ul></div><h3 id="converting-timestamps">Converting timestamps</h3>
+<div><ul class='lib'><li class="function">
+<h2 id="local_timestamp_to_ptp">
+void <tt class="descname">local_timestamp_to_ptp</tt><big>(</big><a class="reference" href="#ptp_timestamp" title="ptp_timestamp"><span>ptp_timestamp</span></a><em>&nbsp;&amp;ptp_ts</em>, unsigned<em>&nbsp;local_ts</em>, <a class="reference" href="#ptp_time_info" title="ptp_time_info"><span>ptp_time_info</span></a><em>&nbsp;&amp;info</em><big>)</big></h2>
+<p>Convert a timestamp from the local XCore timer to PTP time.</p>
+<p>This function takes a 32-bit timestamp taken from an XCore timer and converts it to PTP time.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>ptp_ts</h2>
+<p>the PTP timestamp structure to be filled with the converted time</p>
+</li>
+<li><h2>local_ts</h2>
+<p>the local timestamp to be converted</p>
+</li>
+<li><h2>info</h2>
+<p>a time information structure retrieved from the ptp server</p>
+</li>
+</ul>
+</div></li>
+
+<li class="function">
+<h2 id="local_timestamp_to_ptp_mod32">
+unsigned <tt class="descname">local_timestamp_to_ptp_mod32</tt><big>(</big>unsigned<em>&nbsp;local_ts</em>, <a class="reference" href="#ptp_time_info_mod64" title="ptp_time_info_mod64"><span>ptp_time_info_mod64</span></a><em>&nbsp;&amp;info</em><big>)</big></h2>
+<p>Convert a timestamp from the local XCore timer to the least significant 32 bits of PTP time.</p>
+<p>This function takes a 32-bit timestamp taken from an XCore timer and converts it to the least significant 32 bits of global PTP time.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>local_ts</h2>
+<p>the local timestamp to be converted</p>
+</li>
+<li><h2>info</h2>
+<p>a time information structure retrieved from the PTP server</p>
+</li>
+</ul>
+</div><h4 class="nosecnum compact" id="">Returns</h4>
+<div><p>the least significant 32-bits of ptp time in nanoseconds</p>
+</div></li>
+
+<li class="function">
+<h2 id="ptp_timestamp_to_local">
+unsigned <tt class="descname">ptp_timestamp_to_local</tt><big>(</big><a class="reference" href="#ptp_timestamp" title="ptp_timestamp"><span>ptp_timestamp</span></a><em>&nbsp;&amp;ts</em>, <a class="reference" href="#ptp_time_info" title="ptp_time_info"><span>ptp_time_info</span></a><em>&nbsp;&amp;info</em><big>)</big></h2>
+<p>Convert a PTP timestamp to a local XCore timestamp.</p>
+<p>This function takes a PTP timestamp and converts it to a local 32-bit timestamp that is related to the XCore timer.</p>
+<h4 class="nosecnum compact" id="">Parameters</h4>
+<div><ul class="field_list" class="latex_compact"><li><h2>ts</h2>
+<p>the PTP timestamp to convert</p>
+</li>
+<li><h2>info</h2>
+<p>a time information structure retrieved from the PTP server.</p>
+</li>
+</ul>
+</div><h4 class="nosecnum compact" id="">Returns</h4>
+<div><p>the local timestamp</p>
+</div></li>
+
+</ul></div></div>
+
+             </div>
+             </div>
+
+
+          </div>
+
+          <div>
+             <!--seealsos-->
+          </div><div id="local_seealso">
+             <h1>See Also</h1>
+             <ul class="iconmenu">
+             <li><a href="page0.html">Overview</a></li>
+             <li><a href="page7.html">XMOS AVB-DC specification</a></li>
+             <li><a href="page2.html">Ethernet AVB standards</a></li>
+             <li><a href="page8.html">Hardware development platforms</a></li>
+             <li><a href="page4.html">System description</a></li>
+             <li><a href="page9.html">Programming guide</a></li>
+             </ul>
+          </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>

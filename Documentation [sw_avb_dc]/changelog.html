@@ -1,0 +1,149 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>sw_avb_dc Change Log &mdash; AVB-DC Software Stack v documentation</title>
+
+    <link rel="stylesheet" href=".static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href=".static/globals.css"  type="text/css" />
+    <link rel="stylesheet" href=".static/ui.css" type="text/css" />
+    <link rel="stylesheet" href=".static/app.css"  type="text/css" />
+    <link rel="stylesheet" href=".static/mobile.css"  type="text/css" />
+    <link rel="stylesheet" href=".static/xde.css"
+    type="text/css" /><script type="text/javascript" src=".static/scripts.js"></script>
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src=".static/jquery.js"></script>
+    <script type="text/javascript" src=".static/underscore.js"></script>
+    <script type="text/javascript" src=".static/doctools.js"></script>
+    <link rel="top" title="AVB-DC Software Stack v documentation" href="index.html" />
+    <link rel="prev" title="AVB-DC Software Stack" href="index.html" /> 
+  </head>
+  <body class="xde indented-content" onload="prepareContents();">  
+          <div id="body">
+             <div id="content">
+             <h1>sw_avb_dc Change Log</h1>
+
+             <div class='columns'>
+            
+  <h2 class="topic" id="id1">1.0.6</h2>
+<div><blockquote>
+<div><ul>
+<li>Changes to dependencies:<ul>
+<li>sc_avb: 6.0.6rc0 -&gt; 6.0.7rc0</li>
+<li>sc_ethernet: 2.3.0rc0 -&gt; 2.3.1rc0<ul>
+<li>Fix invalid inter-frame gaps.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+</div><h2 class="topic" id="id2">1.0.5</h2>
+<div><blockquote>
+<div><ul>
+<li>Changes to dependencies:<ul>
+<li>sc_avb: 6.0.5rc0 -&gt; 6.0.6rc0<ul>
+<li>Reverted change to 1722 introduced in 6.0.3 that caused media clock to unlock</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+</div><h2 class="topic" id="id3">1.0.4</h2>
+<div><blockquote>
+<div><ul>
+<li>Bug fix to CONFIGURATION descriptor descriptor_counts_count field which was 1 small</li>
+<li>Changes to dependencies:<ul>
+<li>sc_avb: 6.0.3beta0 -&gt; 6.0.6rc0<ul>
+<li>Reverted change to 1722 introduced in 6.0.3 that caused media clock to unlock</li>
+<li>Bug fix to prevent compile error when Talker is disabled</li>
+<li>Update to 1722 MAAP to fix non-compliance issue on conflict check</li>
+<li>Updates design guide documentation to include AVB-DC details</li>
+<li>SPI task updated to take a structure with ports</li>
+<li>Bug fix on cd length of acquire command response</li>
+<li>Added EFU mode and address access flags to ADP capabilities</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+</div><h2 class="topic" id="id4">1.0.3</h2>
+<div><blockquote>
+<div><ul>
+<li>Changes to dependencies:<ul>
+<li>sc_i2c: 2.2.0rc0 -&gt; 2.4.0beta1<ul>
+<li>i2c_shared functions now take i2cPorts structure as param (rather than externed). This allows for</li>
+<li>module_i2c_simple can now be built with support to send repeated starts and retry reads and writes NACKd by slave</li>
+<li>module_i2c_shared added to allow multiple logical cores to safely share a single I2C bus</li>
+<li>Removed readreg() function from single_port module since it was not safe</li>
+<li>Documentation fixes</li>
+</ul>
+</li>
+<li>sc_avb: 6.0.2alpha0 -&gt; 6.0.3beta0<ul>
+<li>Firmware upgrade functionality changed to support START_OPERATION commands to erase the flash</li>
+<li>Several SRP bug fixes that would cause long connect/disconnection sequences to fail</li>
+</ul>
+</li>
+<li>sc_slicekit_support: 1.0.3rc0 -&gt; 1.0.4rc0<ul>
+<li>Fix to the metainfo.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+</div><h2 class="topic" id="id5">1.0.2</h2>
+<div><blockquote>
+<div><ul>
+<li>Interim release for production manufacture</li>
+</ul>
+</div></blockquote>
+</div><h2 class="topic" id="id6">1.0.1</h2>
+<div><blockquote>
+<div><ul>
+<li>Fixed erroneous number of stream formats in stream descriptors</li>
+<li>Changes to dependencies:<ul>
+<li>sc_avb: 6.0.0alpha3 -&gt; 6.0.1alpha0<ul>
+<li>VLAN ID is now reported via 1722.1 ACMP</li>
+<li>Fixed XC pointer issue for v13.0.1 tools</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+</div><h2 class="topic" id="id7">1.0.0</h2>
+<div><blockquote>
+<div><ul>
+<li>First release of daisy chain AVB</li>
+</ul>
+</div></blockquote>
+</div>
+
+             </div>
+             </div>
+
+
+          </div>
+
+          <div>
+             <!--seealsos-->
+          </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>

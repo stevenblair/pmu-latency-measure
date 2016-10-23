@@ -1,0 +1,466 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Programming guide &mdash; XMOS AVB-DC Design Guide v documentation</title>
+
+    <link rel="stylesheet" href=".static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href=".static/globals.css"  type="text/css" />
+    <link rel="stylesheet" href=".static/ui.css" type="text/css" />
+    <link rel="stylesheet" href=".static/app.css"  type="text/css" />
+    <link rel="stylesheet" href=".static/mobile.css"  type="text/css" />
+    <link rel="stylesheet" href=".static/xde.css"
+    type="text/css" /><script type="text/javascript" src=".static/scripts.js"></script>
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src=".static/jquery.js"></script>
+    <script type="text/javascript" src=".static/underscore.js"></script>
+    <script type="text/javascript" src=".static/doctools.js"></script>
+    <link rel="top" title="XMOS AVB-DC Design Guide v documentation" href="index.html" />
+    <link rel="next" title="API Reference" href="page6.html" />
+    <link rel="prev" title="System description" href="page4.html" /> 
+  </head>
+  <body class="xde indented-content" onload="prepareContents();">  
+          <div id="body">
+             <div id="content">
+             <h1>Programming guide</h1>
+
+             <div class='columns'>
+            
+  <h2 class="topic" id="getting-started">Getting started</h2>
+<div><h3 id="obtaining-the-latest-firmware">Obtaining the latest firmware</h3>
+<div><ol class="arabic simple">
+<li>Log into xmos.com and access <cite>My XMOS</cite> <strong>&gt;</strong> <cite>Reference Designs</cite></li>
+<li>Request access to the <cite>XMOS AVB-DC Software Release</cite> by clicking the <cite>Request Access</cite> link under <cite>AVB DAISY-CHAIN KIT</cite>. An email will be sent to your registered email address when access is granted.</li>
+<li>A <cite>Download</cite> link will appear where the <cite>Request Access</cite> link previously appeared. Click and download the firmware zip.</li>
+</ol>
+</div><h3 id="installing-xtimecomposer-tools-suite">Installing xTIMEcomposer Tools Suite</h3>
+<div><p>The AVB-DC software requires xTIMEcomposer version 13.0.2 or greater. It can be downloaded at the following URL
+<a class="reference" href="https://www.xmos.com/en/support/downloads/xtimecomposer"><span>https://www.xmos.com/en/support/downloads/xtimecomposer</span></a></p>
+</div><h3 id="importing-and-building-the-firmware">Importing and building the firmware</h3>
+<div><p>To import and build the firmware, open xTIMEcomposer Studio and
+follow these steps:</p>
+<ol class="arabic simple">
+<li>Choose <cite>File</cite> <strong>&gt;</strong> <cite>Import</cite>.</li>
+<li>Choose <cite>General</cite> <strong>&gt;</strong> <cite>Existing Projects into Workspace</cite> and
+click <strong>Next</strong>.</li>
+<li>Click <strong>Browse</strong> next to <strong>`Select archive file`</strong> and select
+the firmware .zip file downloaded in section 1.</li>
+<li>Make sure that all projects are ticked in the
+<cite>Projects</cite> list.</li>
+<li>Click <strong>Finish</strong>.</li>
+<li>Select the <tt class="docutils literal"><span class="pre">app_daisy_chain</span></tt> project in the Project Explorer and click the <strong>Build</strong> icon in the main toolbar.</li>
+</ol>
+</div><h3 id="installing-the-application-onto-flash-memory">Installing the application onto flash memory</h3>
+<div><ol class="arabic simple">
+<li>Connect the xTAG-2 debug adapter (XA-SK-XTAG2) to the first sliceKIT core board.</li>
+<li>Connect the xTAG-2 to the debug adapter.</li>
+<li>Plug the xTAG-2 into your development system via USB.</li>
+<li>Plug in the 12V power adapter and connect it to the sliceKIT core board.</li>
+<li>In xTIMEcomposer, right-click on the binary within the <em>app_daisy_chain/bin</em> folder of the project.</li>
+<li>Choose <cite>Flash As</cite> <strong>&gt;</strong> <cite>Flash Configurations</cite>.</li>
+<li>Double click <cite>xCORE Application</cite> in the left panel.</li>
+<li>Choose <cite>hardware</cite> in <cite>Device options</cite> and select the relevant xTAG-2 adapter.</li>
+<li>Click on <strong>Apply</strong> if configuration has changed.</li>
+<li>Click on <strong>Flash</strong>. Once completed, disconnect the power from the sliceKIT core board.</li>
+<li>Repeat steps 1 through 8 for the second sliceKIT.</li>
+</ol>
+</div><h3 id="using-the-command-line-tools">Using the Command Line Tools</h3>
+<div><ol class="arabic">
+<li>Open the XMOS command line tools (Command Prompt) and
+execute the following command:<pre class="snip-single-inline">
+xrun --xscope &lt;binary&gt;.xe
+</pre>
+</li>
+<li>If multiple xTAG-2s are connected, obtain the adapter ID integer by executing:<pre class="snip-single-inline">
+xrun -l
+</pre>
+</li>
+<li>Execute the <cite>xrun</cite> command with the adapter ID flag<pre class="snip-single-inline">
+xrun --id &lt;id&gt; --xscope &lt;binary&gt;.xe
+</pre>
+</li>
+</ol>
+<h4 id="installing-the-application-onto-flash-via-command-line">Installing the application onto flash via Command Line</h4>
+<div><ol class="arabic simple">
+<li>Connect the xTAG-2 debug adapter to the relevant development
+board, then plug the xTAG-2 into your PC or Mac.</li>
+</ol>
+</div></div><h3 id="using-command-line-tools">Using Command Line Tools</h3>
+<div><ol class="arabic">
+<li>Open the XMOS command line tools (Command Prompt) and
+execute the following command:<pre class="snip-single-inline">
+xflash &lt;binary&gt;.xe
+</pre>
+</li>
+<li>If multiple xTAG-2s are connected, obtain the adapter ID integer by executing:<pre class="snip-single-inline">
+xrun -l
+</pre>
+</li>
+<li>Execute the <cite>xflash</cite> command with the adapter ID flag<pre class="snip-single-inline">
+xflash --id &lt;id&gt; &lt;binary&gt;.xe
+</pre>
+</li>
+</ol>
+</div></div><h2 class="topic" id="source-code-structure">Source code structure</h2>
+<div><h3 id="directory-structure">Directory Structure</h3>
+<div><p>The source code is split into several top-level directories which are
+presented as separate projects in xTIMEcomposer Studio. These are split into
+modules and applications.</p>
+<p>Applications build into a single
+executable using the source code from the modules. The modules used by
+an application are specified using the <tt class="docutils literal"><span class="pre">USED_MODULES</span></tt> variable in
+the application Makefile. For more details on this module structure
+please see the XMOS build system document <em>Using XMOS Makefiles (X6348)</em>.</p>
+<p>The AVB-DC source package contains a simple demonstration application <cite>app_daisy_chain</cite>.</p>
+<p>Core AVB modules are presented in the sc_avb repository. Some support modules originate in other repositories:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head"><p>Directory</p>
+</th>
+<th class="head"><p>Description</p>
+</th>
+<th class="head"><p>Repository</p>
+</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><p>module_ethernet</p>
+</td>
+<td><p>Ethernet MAC</p>
+</td>
+<td><p>sc_ethernet</p>
+</td>
+</tr>
+<tr><td><p>module_ethernet_board_support</p>
+</td>
+<td><p>Hardware specific board configuration for Ethernet MAC</p>
+</td>
+<td><p>sc_ethernet</p>
+</td>
+</tr>
+<tr><td><p>module_ethernet_smi</p>
+</td>
+<td><p>SMI interface for reading/writing registers to the Ethernet PHY</p>
+</td>
+<td><p>sc_ethernet</p>
+</td>
+</tr>
+<tr><td><p>module_otp_board_info</p>
+</td>
+<td><p>Interface for reading serial number and MAC addresses from OTP memory</p>
+</td>
+<td><p>sc_otp</p>
+</td>
+</tr>
+<tr><td><p>module_i2c_simple</p>
+</td>
+<td><p>Two wire configuration protocol code.</p>
+</td>
+<td><p>sc_i2c</p>
+</td>
+</tr>
+<tr><td><p>module_random</p>
+</td>
+<td><p>Random number generator</p>
+</td>
+<td><p>sc_util</p>
+</td>
+</tr>
+<tr><td><p>module_logging</p>
+</td>
+<td><p>Debug print library</p>
+</td>
+<td><p>sc_util</p>
+</td>
+</tr>
+<tr><td><p>module_slicekit_support</p>
+</td>
+<td><p>sliceKIT core board support</p>
+</td>
+<td><p>sc_slicekit_support</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The following modules in sc_avb contain the core AVB code and are needed by
+every application:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head"><p>Directory</p>
+</th>
+<th class="head"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><p>module_avb</p>
+</td>
+<td><p>Main AVB code for control and configuration.</p>
+</td>
+</tr>
+<tr><td><p>module_avb_1722</p>
+</td>
+<td><p>IEEE 1722 transport (listener and talker functionality).</p>
+</td>
+</tr>
+<tr><td><p>module_avb_1722_1</p>
+</td>
+<td><p>IEEE P1722.1 AVB control protocol.</p>
+</td>
+</tr>
+<tr><td><p>module_avb_1722_maap</p>
+</td>
+<td><p>IEEE 1722 MAAP - Multicast address allocation code.</p>
+</td>
+</tr>
+<tr><td><p>module_avb_audio</p>
+</td>
+<td><p>Code for media FIFOs and audio hardware interfaces (I2S).</p>
+</td>
+</tr>
+<tr><td><p>module_avb_flash</p>
+</td>
+<td><p>Flash access for firmware upgrade</p>
+</td>
+</tr>
+<tr><td><p>module_avb_media_clock</p>
+</td>
+<td><p>Media clock server code for clock recovery.</p>
+</td>
+</tr>
+<tr><td><p>module_avb_srp</p>
+</td>
+<td><p>802.1Qat stream reservation (SRP/MRP/MVRP) code.</p>
+</td>
+</tr>
+<tr><td><p>module_avb_util</p>
+</td>
+<td><p>General utility functions used by all modules.</p>
+</td>
+</tr>
+<tr><td><p>module_gptp</p>
+</td>
+<td><p>802.1AS Precision Time Protocol code.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div><h3 id="key-files">Key Files</h3>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head"><p>File</p>
+</th>
+<th class="head"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><p><tt class="docutils literal"><span class="pre">avb_api.h</span></tt></p>
+</td>
+<td><p>Header file containing declarations for the core AVB control API.</p>
+</td>
+</tr>
+<tr><td><p><tt class="docutils literal"><span class="pre">avb_1722_1_app_hooks.h</span></tt></p>
+</td>
+<td><p>Header file containing declarations for hooks into 1722.1</p>
+</td>
+</tr>
+<tr><td><p><tt class="docutils literal"><span class="pre">ethernet_rx_client.h</span></tt></p>
+</td>
+<td><p>Header file for clients that require direct access to the ethernet MAC
+(RX).</p>
+</td>
+</tr>
+<tr><td><p><tt class="docutils literal"><span class="pre">ethernet_tx_client.h</span></tt></p>
+</td>
+<td><p>Header file for clients that require direct access to the ethernet MAC
+(TX).</p>
+</td>
+</tr>
+<tr><td><p><tt class="docutils literal"><span class="pre">gptp.h</span></tt></p>
+</td>
+<td><p>Header file for access to the PTP server.</p>
+</td>
+</tr>
+<tr><td><p><tt class="docutils literal"><span class="pre">audio_i2s.h</span></tt></p>
+</td>
+<td><p>Header file containing the I2S audio component.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div></div><h2 class="topic" id="entity-firmware-upgrade-efu">Entity Firmware Upgrade (EFU)</h2>
+<div><h3 id="introduction">Introduction</h3>
+<div><p>The EFU loader is a flash device firmware upgrade mechanism for AVB endpoints.</p>
+<p>The firmware upgrade implementation for XMOS AVB devices uses a subset of the
+Memory Object Upload mechanism described in Annex D of the 1722.1-2013 standard:</p>
+<p><a class="reference" href="http://standards.ieee.org/findstds/standard/1722.1-2013.html"><span>http://standards.ieee.org/findstds/standard/1722.1-2013.html</span></a></p>
+<p>Supported functionality:</p>
+<blockquote>
+<div><ul>
+<li>Upload of new firmware to AVB device</li>
+<li>Reboot of device on firmware upgrade via the 1722.1 REBOOT command</li>
+</ul>
+</div></blockquote>
+<p>xTIMEcomposer v13.0.2 or later is required to generate flash images compatible with
+the AVB-DC flash interface.</p>
+</div><h3 id="spi-flash-ic-requirements-and-configuration">SPI Flash IC Requirements and Configuration</h3>
+<div><p>The current version of the AVB-DC EFU functionality supports boot flashes with the following
+properties only:</p>
+<blockquote>
+<div><ul>
+<li>A page size of 256 bytes</li>
+<li>Total flash size greater than or equal to the size required to store the boot loader, factory image and maximum sized upgrade image.</li>
+</ul>
+</div></blockquote>
+<p>Other flash specific configuration parameters may be changed via <tt class="docutils literal"><span class="pre">avb_flash_conf.h</span></tt>:</p>
+<ul class='lib'><li class="macro">
+<h2 id="FLASH_SECTOR_SIZE">
+<tt class="descname">FLASH_SECTOR_SIZE</tt></h2>
+</li>
+
+<li class="macro">
+<h2 id="FLASH_SPI_CMD_ERASE">
+<tt class="descname">FLASH_SPI_CMD_ERASE</tt></h2>
+</li>
+
+<li class="macro">
+<h2 id="FLASH_NUM_PAGES">
+<tt class="descname">FLASH_NUM_PAGES</tt></h2>
+</li>
+
+<li class="macro">
+<h2 id="FLASH_MAX_UPGRADE_IMAGE_SIZE">
+<tt class="descname">FLASH_MAX_UPGRADE_IMAGE_SIZE</tt></h2>
+</li>
+
+</ul></div><h3 id="installing-the-factory-image-to-the-device">Installing the factory image to the device</h3>
+<div><p>Once the AVB-DC application has been built:</p>
+<ol class="arabic">
+<li>Open the XMOS command line tools (Command Prompt) and
+execute the following command:<pre class="snip-single-inline">
+xflash --boot-partition-size 262144 &lt;binary&gt;.xe
+</pre>
+</li>
+<li>If multiple xTAG-2s are connected, obtain the adapter ID integer by executing:<pre class="snip-single-inline">
+xrun -l
+</pre>
+</li>
+<li>Execute the <cite>xflash</cite> command with the adapter ID flag<pre class="snip-single-inline">
+xflash --id &lt;id&gt; --boot-partition-size 262144 &lt;binary&gt;.xe
+</pre>
+<p class="note">Ignore the following warning which is informative only:</p>
+<p><tt class="docutils literal"><span class="pre">Warning:</span> <span class="pre">F03098</span> <span class="pre">Factory</span> <span class="pre">image</span> <span class="pre">and</span> <span class="pre">boot</span> <span class="pre">loader</span> <span class="pre">cannot</span> <span class="pre">be</span> <span class="pre">write-protected</span> <span class="pre">on</span> <span class="pre">flash</span> <span class="pre">device</span> <span class="pre">on</span> <span class="pre">node</span> <span class="pre">&quot;0&quot;</span></tt></p>
+</li>
+</ol>
+<p>This programs the factory default firmware image into the flash device.</p>
+<p>To use the firmware upgrade mechanism you need to build a firmware upgrade
+image:</p>
+<ol class="arabic simple">
+<li>Edit the <tt class="docutils literal"><span class="pre">aem_entity_strings.h.in</span></tt> file and increment the <tt class="docutils literal"><span class="pre">AVB_1722_1_FIRMWARE_VERSION_STRING</span></tt> and
+<tt class="docutils literal"><span class="pre">AVB_1722_1_ADP_MODEL_ID</span></tt> in <tt class="docutils literal"><span class="pre">avb_conf.h</span></tt>.</li>
+<li>Rebuild the application</li>
+</ol>
+<p>To generate the firmware upgrade image run the following command:</p>
+<blockquote>
+<div><pre class="snip-single-inline">
+xflash --factory-version 13 --upgrade 1 &lt;binary&gt;.xe -o upgrade_image.bin
+</pre>
+</div></blockquote>
+<p>You should now have the firmware upgrade file upgrade_image.bin which can be transferred to the
+AVB end station.</p>
+</div><h3 id="using-the-avdecc-lib-cli-controller-to-upgrade-firmware">Using the avdecc-lib CLI Controller to upgrade firmware</h3>
+<div><dl class="docutils">
+<dt>..note ::</dt>
+<dd><p>See the XMOS document <em>AVB System Requirements Guide</em> for installation details of the <tt class="docutils literal"><span class="pre">avdecccmdline</span></tt> tool.</p>
+</dd>
+</dl>
+<ol class="arabic">
+<li>To program the new firmware, first run <tt class="docutils literal"><span class="pre">avdecccmdline</span></tt> and select the interface number that represents
+the Ethernet interface that the AVB network is connected to:<pre class="snip-single-inline">
+Enter the interface number (1-7): 1
+</pre>
+</li>
+<li>Use the <tt class="docutils literal"><span class="pre">list</span></tt> command to view all AVB end stations on the network:<pre class="snip-multi-inline">
+$ list
+
+End Station | Name         | Entity ID          | Firmware Version | MAC
+---------------------------------------------------------------------------------
+C         0 | AVB 4in/4out | 0x002297fffe005279 |            1.0.0 | 002297005279
+</pre>
+</li>
+<li>Select the end station that you wish to upgrade using the <tt class="docutils literal"><span class="pre">select</span></tt> command with the integer ID shown in the <tt class="docutils literal"><span class="pre">End</span> <span class="pre">Station</span></tt>
+column of the <tt class="docutils literal"><span class="pre">list</span></tt> output and two additional zeroes indicating the Entity and Configuration indices:<pre class="snip-single-inline">
+$ select 0 0 0
+</pre>
+</li>
+<li>Begin the firmware upgrade process using the <tt class="docutils literal"><span class="pre">upgrade</span></tt> command with the full path of the <tt class="docutils literal"><span class="pre">upgrade_image.bin</span></tt>
+file:<pre class="snip-multi-inline">
+$ upgrade /path/to/upgrade_image.bin
+Erasing image...
+Successfully erased.
+Uploading image...
+################################################################################
+Successfully upgraded image.
+Do you want to reboot the device? [y/n]: y
+</pre>
+</li>
+<li>The device should now reboot and re-enumerate with an upgraded Firmware Version string. Test this using the <tt class="docutils literal"><span class="pre">list</span></tt> command:<pre class="snip-multi-inline">
+$ list
+
+End Station | Name         | Entity ID          | Firmware Version | MAC
+---------------------------------------------------------------------------------
+C         0 | AVB 4in/4out | 0x002297fffe005279 |            1.1.0 | 002297005279
+</pre>
+</li>
+</ol>
+</div></div>
+
+             </div>
+             </div>
+
+
+          </div>
+
+          <div>
+             <!--seealsos-->
+          </div><div id="local_seealso">
+             <h1>See Also</h1>
+             <ul class="iconmenu">
+             <li><a href="page0.html">Overview</a></li>
+             <li><a href="page7.html">XMOS AVB-DC specification</a></li>
+             <li><a href="page2.html">Ethernet AVB standards</a></li>
+             <li><a href="page8.html">Hardware development platforms</a></li>
+             <li><a href="page4.html">System description</a></li>
+             <li><a href="page6.html">API Reference</a></li>
+             </ul>
+          </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>
