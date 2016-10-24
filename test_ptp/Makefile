@@ -9,7 +9,7 @@ TARGET = SLICEKIT-L16
 APP_NAME = test_ptp
 
 # The USED_MODULES variable lists other module used by the application.
-USED_MODULES = module_avb_util module_ethernet module_ethernet_board_support module_logging module_otp_board_info module_slicekit_support
+USED_MODULES = module_avb_util module_ethernet module_ethernet_board_support module_gptp module_logging module_otp_board_info module_slicekit_support
 
 # The flags passed to xcc when building the application
 # You can also set the following to override flags for a particular language:

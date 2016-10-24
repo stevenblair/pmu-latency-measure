@@ -1,0 +1,84 @@
+////#pragma once
+//
+////#include <iostream>
+////#include <list>
+////#include <string>
+////#include <unistd.h>
+//#include "c37.118.h"
+//
+//uint8_t buf_payload[512];
+////uint8_t buf_out[512];
+//extern UDP udp;
+//
+////     Compute CRC-CCITT. *buf is a pointer to the first character in the message;
+////    len is the number of characters in the message (not counting the CRC on the end)
+//    uint16_t ComputeCRC(unsigned char *buf, unsigned char len) {
+//        uint16_t crc = 0xFFFF;
+//        uint16_t temp;
+//        uint16_t quick;
+//        int i;
+//
+//        for (i = 0; i < len; i++) {
+//            temp = (crc >> 8) ^ buf[i];
+//            crc <<= 8;
+//            quick = temp ^ (temp >> 4);
+//            crc ^= quick;
+//            quick <<= 5;
+//            crc ^= quick;
+//            quick <<= 7;
+//            crc ^= quick;
+//        }
+//
+//        return crc;
+//    }
+//
+//uint16_t write_data_transmission_frame(unsigned char *buf, uint32_t SOC_recv, uint16_t transmission_state) {
+//    uint16_t len = 0;
+//    unsigned char *FRAMESIZE_ptr;
+//    uint16_t FRAMESIZE = 0;
+//
+//    uint16_t SYNC = 0xAA41;  // command frame
+//    netmemcpy(&buf[len], (const void*) &SYNC, sizeof SYNC);
+//    len += sizeof SYNC;
+//
+//    FRAMESIZE_ptr = &buf[len];  // remember FRAMESIZE location for later
+//    len += sizeof FRAMESIZE;
+//
+//    uint16_t IDCODE = 2;
+//    netmemcpy(&buf[len], (const void*) &IDCODE, sizeof IDCODE);
+//    len += sizeof IDCODE;
+//
+//    netmemcpy(&buf[len], (const void*)&SOC_recv, sizeof SOC_recv);
+//    len += sizeof SOC_recv;
+//
+//    uint32_t FRACSEC = 0;
+//    netmemcpy(&buf[len], (const void*) &FRACSEC, sizeof FRACSEC);
+//    len += sizeof FRACSEC;
+//
+//    netmemcpy(&buf[len], (const void*) &transmission_state, sizeof transmission_state);
+//    len += sizeof transmission_state;
+//
+//    FRAMESIZE = len + 2;    // includes CRC size
+//    netmemcpy(FRAMESIZE_ptr, (const void*) &FRAMESIZE, sizeof FRAMESIZE);
+//
+//    uint16_t crc = ComputeCRC(buf, len);
+//    netmemcpy(&buf[len], (unsigned char *) &crc, sizeof crc);
+//    len += sizeof crc;
+//
+//    return len;
+//};
+//
+//uint16_t write_ethernet_frame_into_buf(unsigned char *buf, uint32_t SOC_recv, uint16_t transmission_state) {
+//    uint16_t len_out = 0;
+//    uint16_t len_payload = 0;
+//
+//    len_payload = write_data_transmission_frame(buf_payload, SOC_recv, transmission_state);
+//
+//    len_out = encode_UDP(buf, &udp, (const char*)buf_payload, len_payload);
+//
+//    return len_out;
+//};
+//
+//
+////extern "C" {
+////};
