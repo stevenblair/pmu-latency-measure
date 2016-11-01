@@ -4,7 +4,7 @@
 #define MAC_FILTER_ARPIP 0x4
 #define MAC_FILTER_AVB_CONTROL  0x8
 //
-#define MII_FILTER_FORWARD_TO_OTHER_PORTS (0x00000000)
+//#define MII_FILTER_FORWARD_TO_OTHER_PORTS (0x80000000)
 //
 //inline int mac_custom_filter(unsigned int buf[], unsigned int mac[2])
 //{
@@ -49,11 +49,12 @@ inline int mac_custom_filter(unsigned int buf[], unsigned int mac[2])
           result = MAC_FILTER_PTP;
           break;
         default:
-          if ((buf[0] & 0x1) || // Broadcast
-              (buf[0] != mac[0] || buf[1] != mac[1])) // Not unicast
-          {
-            result |= MII_FILTER_FORWARD_TO_OTHER_PORTS;
-          }
+            return 0;
+//          if ((buf[0] & 0x1) || // Broadcast
+//              (buf[0] != mac[0] || buf[1] != mac[1])) // Not unicast
+//          {
+//            result |= MII_FILTER_FORWARD_TO_OTHER_PORTS;
+//          }
           break;
       }
 

@@ -18,6 +18,11 @@
 #include <string.h>
 
 
+#include <xs1.h>
+#include <platform.h>
+#include "otp_board_info.h"
+#include "ethernet.h"
+#include "smi.h"
 
 
 #define UDP_HEADER_BYTES    8
@@ -306,12 +311,26 @@ uint16_t write_ethernet_frame_into_buf(unsigned char *buf, uint32_t SOC_recv, ui
 
 
 
-
-
-
-
-
-
+//// Here are the port definitions required by ethernet. This port assignment
+//// is for the L16 sliceKIT with the ethernet slice plugged into the
+//// CIRCLE slot.
+//port p_eth_rxclk = on tile[1]: XS1_PORT_1J;
+//port p_eth_rxd = on tile[1]: XS1_PORT_4E;
+//port p_eth_txd = on tile[1]: XS1_PORT_4F;
+//port p_eth_rxdv = on tile[1]: XS1_PORT_1K;
+//port p_eth_txen = on tile[1]: XS1_PORT_1L;
+//port p_eth_txclk = on tile[1]: XS1_PORT_1I;
+//port p_eth_rxerr = on tile[1]: XS1_PORT_1P;
+//port p_eth_dummy = on tile[1]: XS1_PORT_8C;
+//clock eth_rxclk = on tile[1]: XS1_CLKBLK_1;
+//clock eth_txclk = on tile[1]: XS1_CLKBLK_2;
+//
+//
+//port p_smi_mdio = on tile[1]: XS1_PORT_1M;
+//port p_smi_mdc = on tile[1]: XS1_PORT_1N;
+//
+//// These ports are for accessing the OTP memory
+////otp_ports_t otp_ports = on tile[0]: OTP_PORTS_INITIALIZER;
 
 
 
@@ -582,7 +601,7 @@ void delay_server_test() {
 //            periodic_queue_tx(c_tx, rand);
 //            periodic_queue_tx_check_all(c_tx);
     //            ptp_periodic(c_tx, ptp_timeout);
-            ptp_timeout += 100000;
+            ptp_timeout += 100000000;
 
             delay_flag = 1;
             xscope_int(DELAY_FLAG, delay_flag);
@@ -602,42 +621,67 @@ void delay_server_test() {
   }
 }
 
+
+#define ETH_RX_BUFFER_SIZE_WORDS 1600
+
+
 int main()
 {
-  chan c_mac_rx[1], c_mac_tx[1];
+    chan c_mac_rx[1], c_mac_tx[1];
+//    chan c_mac_rx2[1], c_mac_tx2[1];
   chan c_ptp[1];
+//  chan connect_status;
+
+//  ethernet_cfg_if i_cfg[1];
+//  ethernet_rx_if i_rx[1];
+//  ethernet_tx_if i_tx[1];
+//  smi_if i_smi;
+
 
   par
   {
-//    on ETHERNET_DEFAULT_TILE:
-//    {
-//      char mac_address[6];
-//      otp_board_info_get_mac(otp_ports, 0, mac_address);
-//      smi_init(smi1);
-//      eth_phy_config(1, smi1);
-//      ethernet_server_full_two_port(mii1,
-//                                    mii2,
-//                                    smi1,
-//                                    null,
-//                                    mac_address,
-//                                    c_mac_rx, 1,
-//                                    c_mac_tx, 1);
-//    }
-
-
+    on ETHERNET_DEFAULT_TILE:
+    {
+        char mac_address[6];
+        char mac_address2[6];
+        otp_board_info_get_mac(otp_ports, 0, mac_address);
+      smi_init(smi1);
+      eth_phy_config(1, smi1);
+      ethernet_server_full_two_port(mii1,
+                                    mii2,
+                                    smi1,
+                                    null,
+                                    mac_address,
+                                    c_mac_rx, 1,
+                                    c_mac_tx, 1);
+//      ethernet_server(mii1, smi1, mac_address, c_mac_rx, 1, c_mac_tx, 1);
+//      ethernet_server(mii2, smi2, mac_address, c_mac_rx2, 1, c_mac_tx2, 1);
+    }
+//
+//
 //    on stdcore[0]: delay_server(c_mac_rx[0], c_mac_tx[0]);
 
 
+//      on tile[1]: mii_ethernet_mac(i_cfg, 1,
+//                                  i_rx, 1,
+//                                  i_tx, 1,
+//                                  p_eth_rxclk, p_eth_rxerr,
+//                                  p_eth_rxd, p_eth_rxdv,
+//                                  p_eth_txclk, p_eth_txen, p_eth_txd,
+//                                  p_eth_dummy,
+//                                  eth_rxclk, eth_txclk,
+//                                  ETH_RX_BUFFER_SIZE_WORDS);
+//      on tile[1]: lan8710a_phy_driver(i_smi, i_cfg[CFG_TO_PHY_DRIVER]);
+//      on tile[1]: smi(i_smi, p_smi_mdio, p_smi_mdc);
 
 
-
-//    // enable both these tasks for a PTP server:
-//    on stdcore[0]: ptp_server(c_mac_rx[0],
-//                              c_mac_tx[0],
-//                              c_ptp,
-//                              1,
-//                              PTP_GRANDMASTER_CAPABLE);
-//    on stdcore[0]: ptp_output_test_clock(c_ptp[0], ptp_sync_port, 100000000);
+    // enable both these tasks for a PTP server:
+    on stdcore[1]: ptp_server(c_mac_rx[0],
+                              c_mac_tx[0],
+                              c_ptp,
+                              1,
+                              PTP_SLAVE_ONLY);
+    on stdcore[0]: ptp_output_test_clock(c_ptp[0], ptp_sync_port, 100000000);
 
 
     on stdcore[0]: delay_server_test();
