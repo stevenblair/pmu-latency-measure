@@ -65,12 +65,13 @@ typedef struct udp_header {
 
 
 
-uint8_t IP_SOURCE[4] = { 192, 168, 2, 126 };    // TODO: get local IP address at runtime
+uint8_t IP_SOURCE[4] = { 192, 168, 2, 19 };    // TODO: get local IP address at runtime
 uint8_t IP_DEST[4] = { 192, 168, 2, 255 };
 
 //uint8_T ETH_SOURCE[6] = { 0x00, 0x26, 0x9e, 0x53, 0x4b, 0x09 };   // TODO: get local MAC address at runtime
 //uint8_t ETH_SOURCE[6] = { 0x00, 0x01, 0x05, 0x21, 0x95, 0xCE }; // TODO: get local MAC address at runtime
-uint8_t ETH_SOURCE[6] = { 0x00, 0x22, 0x97, 0x00, 0x56, 0xa0 }; // TODO: get local MAC address at runtime
+
+uint8_t ETH_SOURCE[6] = { 0xa0, 0x56, 0x00, 0x97, 0x22, 0x00 };
 uint8_t ETH_DEST[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 
 // a simple memcpy implementation, that reverses endian-ness
@@ -224,9 +225,11 @@ UDP udp;
 //unsigned char buf[512];
 unsigned int buf[512 / 4];
 uint16_t remote_port = 0;
-uint8_t ip[] = { 192, 168, 2, 19 };// 124 };
-uint8_t mac_dest[] = { 0x83, 0x1c, 0x0e, 0x9b, 0x24, 0x00 };
-uint8_t mac_src[] = { 0x83, 0x1c, 0x0e, 0x9b, 0x24, 0x00 };
+uint8_t ip[] = { 192, 168, 2, 126 };// 124 };
+
+//uint8_t mac_dest[] = { 0x83, 0x1c, 0x0e, 0x9b, 0x24, 0x00 };
+uint8_t mac_dest[] = { 0xce, 0x95, 0x21, 0x05, 0x01, 0x00 };
+//uint8_t mac_src[] = { 0x83, 0x1c, 0x0e, 0x9b, 0x24, 0x00 };
 
 uint8_t buf_payload[512];
 //uint8_t buf_out[512];
@@ -391,6 +394,8 @@ unsigned int pmu_report_port = 0;
 ptp_timestamp ptp_ts;
 ptp_time_info ptp_info;
 
+unsigned int LEAP_SECONDS = 36;
+
 
 #pragma select handler
 void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link) {
@@ -401,39 +406,57 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
                        pmu_report_port,
                        MAX_PMU_REPORT_MESG_LENGTH);
 
+//      debug_printf("frame rx, port %d\n", pmu_report_port);
 
       if (pmu_report_port == SQUARE_PORT) {
-          if (pmu_latency_record.state == SENT_START_TRANSMISSION) {
+//          if (pmu_latency_record.state == SENT_START_TRANSMISSION) {
 
               unsigned char *frame = (unsigned char *) pmu_report_buf;
 
-              debug_printf("frame: 0x%x 0x%x\n", frame[42], frame[43]);
+//              debug_printf("frame: 0x%x 0x%x\n", frame[42], frame[43]);
 
               // TODO check ethertype for VLAN
-              if (frame[42] != 0xaa || frame[43] != 0x00) {
+              if (frame[42] != 0xaa || frame[43] != 0x01) {
                   // not Synchrophasor
                   return;
               }
+
+              pmu_latency_record.state = SENT_START_TRANSMISSION;
 
               unsigned int SOC = 0;
               unsigned int FRACSEC = 0;
 
               netmemcpy((unsigned char *) &SOC, &frame[48], 4);
-              debug_printf("SOC: %d", SOC);
               netmemcpy((unsigned char *) &FRACSEC, &frame[52], 4); // TODO deal with/remove time quality flags
-              debug_printf("FRACSEC: %d", FRACSEC);
+//              debug_printf("SOC: %d, ", SOC);
+//              debug_printf("FRACSEC: %d\n", FRACSEC);
+
+              // TODO check cross-tile difference? not needed because PTP server on same tile as Ethernet
 
     //          debug_printf("ts %d, port: %d, 0x%x 0x%x 0x%x 0x%x\n", pmu_report_rx_ts, pmu_report_port, pmu_report_buf[0], pmu_report_buf[1], pmu_report_buf[2], pmu_report_buf[3]);
 
               pmu_latency_record.report_receive_time[pmu_latency_record.next_report_index] = pmu_report_rx_ts;
               ptp_get_time_info(ptp_link, ptp_info);
-              local_timestamp_to_ptp(pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index], pmu_report_rx_ts, ptp_info);
+              local_timestamp_to_ptp(pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index], pmu_latency_record.report_receive_time[pmu_latency_record.next_report_index], ptp_info);
 
-              debug_printf("ts: %d, s[0]: %d, s[1]: %d, ns: %d\n",
-                      pmu_report_rx_ts,
-                      pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index].seconds[0],
-                      pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index].seconds[1],
-                      pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index].nanoseconds);
+//              debug_printf("ts: %d, s[0]: %d, s[1]: %d, ns: %d\n",
+//                      pmu_latency_record.report_receive_time[pmu_latency_record.next_report_index],
+//                      pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index].seconds[0] - LEAP_SECONDS,
+//                      pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index].seconds[1],
+//                      pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index].nanoseconds);
+
+              int diff_microseconds = 0;
+              int diff_s = (pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index].seconds[0] - LEAP_SECONDS) - SOC;
+              int diff_ns = pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index].nanoseconds / 1000 - FRACSEC;
+
+              if (diff_s == 0) {
+                  diff_microseconds = diff_ns / 1000;
+              }
+              else if (diff_s == 1) {
+                  diff_microseconds = (1000000 + diff_ns) / 1000;
+              }
+//              debug_printf("diff: %d, %d\n", diff_s, diff_ns);
+              debug_printf("diff: %d\n", diff_microseconds);
 
 
               pmu_latency_record.next_report_index++;
@@ -442,7 +465,7 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
 //                  pmu_latency_record.state = FINISHED_RECEIVING_REPORTS;
                   pmu_latency_record.state = IDLE;
               }
-          }
+//          }
       }
 
 //  if (start_replay == 1) {
@@ -579,7 +602,7 @@ void delay_server_test(chanend c_rx, chanend c_tx, chanend ptp_link) {
             if (pmu_latency_record.state == IDLE) {
                 pmu_latency_record.next_report_index = 0;
                 mac_tx_timed(c_tx, buf, len, pmu_latency_record.start_transmission_sent_time, SQUARE_PORT);    // TODO check ptp_tx_timed() implementation
-                pmu_latency_record.state = SENT_START_TRANSMISSION;
+//                pmu_latency_record.state = SENT_START_TRANSMISSION;
 
     //            debug_printf("generated %d bytes\n", len);
 
@@ -633,10 +656,11 @@ int main()
     }
 
     // enable both these tasks for a PTP server:
-    on stdcore[0]: ptp_server(c_mac_rx[0],
+    on stdcore[1]: ptp_server(c_mac_rx[0],
                               c_mac_tx[0],
                               c_ptp,
                               1,
+//                              PTP_GRANDMASTER_CAPABLE);
                               PTP_SLAVE_ONLY);
 //    on stdcore[0]: ptp_output_test_clock(c_ptp[0], ptp_sync_port, 100000000);
 
