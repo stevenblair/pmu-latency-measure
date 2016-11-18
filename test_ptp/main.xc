@@ -11,8 +11,6 @@
 #include "ethernet_conf.h"
 #include "mac_custom_filter.h"
 #include "debug_print.h"
-//#include "c37.118.h"
-//#include "udp.h"
 #include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,11 +34,6 @@
 #define IP_IHL              0x5
 #define IP_PROTOCOL_UDP     0x11
 
-//extern uint8_t IP_SOURCE[4];
-//extern uint8_t IP_DEST[4];
-//
-//extern uint8_t ETH_SOURCE[6];
-//extern uint8_t ETH_DEST[6];
 
 typedef struct eth_header {
     uint8_t dest[6];
@@ -309,65 +302,6 @@ uint16_t write_ethernet_frame_into_buf(unsigned char *buf, uint32_t SOC_recv, ui
 };
 
 
-#define MAX_PMU_REPORTS 1000
-
-typedef struct _PMU_latency_record {
-    unsigned int start_transmission_sent_time;
-    unsigned int report_receive_time[MAX_PMU_REPORTS];
-    unsigned int report_index;
-    unsigned int num_reports;
-} PMU_Latency_Record;
-
-
-PMU_Latency_Record pmu_latency_record;
-
-//// Here are the port definitions required by ethernet. This port assignment
-//// is for the L16 sliceKIT with the ethernet slice plugged into the
-//// CIRCLE slot.
-//port p_eth_rxclk = on tile[1]: XS1_PORT_1J;
-//port p_eth_rxd = on tile[1]: XS1_PORT_4E;
-//port p_eth_txd = on tile[1]: XS1_PORT_4F;
-//port p_eth_rxdv = on tile[1]: XS1_PORT_1K;
-//port p_eth_txen = on tile[1]: XS1_PORT_1L;
-//port p_eth_txclk = on tile[1]: XS1_PORT_1I;
-//port p_eth_rxerr = on tile[1]: XS1_PORT_1P;
-//port p_eth_dummy = on tile[1]: XS1_PORT_8C;
-//clock eth_rxclk = on tile[1]: XS1_CLKBLK_1;
-//clock eth_txclk = on tile[1]: XS1_CLKBLK_2;
-//
-//
-//port p_smi_mdio = on tile[1]: XS1_PORT_1M;
-//port p_smi_mdc = on tile[1]: XS1_PORT_1N;
-//
-//// These ports are for accessing the OTP memory
-////otp_ports_t otp_ports = on tile[0]: OTP_PORTS_INITIALIZER;
-
-
-
-
-//void xscope_user_init(void) {
-//
-//#if 0
-//  xscope_register(3, XSCOPE_CONTINUOUS, "local_egress_ts", XSCOPE_UINT, "Value",
-//    XSCOPE_CONTINUOUS, "received_sync_ts", XSCOPE_INT, "Value",
-//    XSCOPE_CONTINUOUS, "residence", XSCOPE_INT, "Value");
-///*
-//  xscope_register(4, XSCOPE_CONTINUOUS, "rdptr", XSCOPE_UINT, "Value",
-//    XSCOPE_CONTINUOUS, "wrptr", XSCOPE_UINT, "Value",
-//    XSCOPE_CONTINUOUS, "hdr", XSCOPE_UINT, "Value",
-//    XSCOPE_CONTINUOUS, "hdr->next", XSCOPE_INT, "Value");
-//*/
-///*
-//  xscope_register(2, XSCOPE_CONTINUOUS, "commit", XSCOPE_UINT, "Value",
-//    XSCOPE_CONTINUOUS, "buf", XSCOPE_INT, "Value");
-//*/
-//    // XSCOPE_CONTINUOUS, "buf", XSCOPE_INT, "Value");
-//    // XSCOPE_CONTINUOUS, "fwdbuf", XSCOPE_INT, "Value");
-//#else
-//  xscope_register(0);
-//#endif
-//  xscope_config_io(XSCOPE_IO_BASIC);
-//}
 
 on ETHERNET_DEFAULT_TILE: otp_ports_t otp_ports = OTP_PORTS_INITIALIZER;
 
@@ -395,11 +329,9 @@ on stdcore[0]: port ptp_sync_port = XS1_PORT_1C;//XS1_PORT_4A;
 
 
 
-#define NORMAL_PORT     0   // rx on this port is tx'd normally
-#define DELAYED_PORT    1   // rx on this port is tx'd with delay
+#define CIRCLE_PORT     0   // rx on this port is tx'd normally
+#define SQUARE_PORT    1   // rx on this port is tx'd with delay
 
-
-//#define PTP_PERIODIC_TIME (50000)
 
 
 
@@ -408,10 +340,11 @@ int in_byte_counter = 0;
 int out_byte_counter = 0;
 //#define MAX_DELAY_MESG_LENGTH   (1000 + (8*8))        // TODO define max packet size
 #define MAX_DELAY_MESG_LENGTH   1024        // TODO define max packet size
+#define MAX_PMU_REPORT_MESG_LENGTH   512        // TODO define max packet size
 #define MAX_BUF_LENGTH  5
 
 typedef struct delay_buf {
-    unsigned int buf[MAX_DELAY_MESG_LENGTH / 4];
+    unsigned int buf[MAX_PMU_REPORT_MESG_LENGTH / 4];
 //    unsigned char buf[MAX_DELAY_MESG_LENGTH];
     unsigned len;
     unsigned rx_ts;
@@ -426,169 +359,186 @@ unsigned int start_replay = 0;
 //unsigned int next_emptiable_buf = -1;
 
 
+
+
+
+#define MAX_PMU_REPORTS 1000
+
+enum PMU_Latency_Test_State {
+    IDLE = 0,
+    SENT_START_TRANSMISSION,
+    FINISHED_RECEIVING_REPORTS
+};
+
+typedef struct _PMU_latency_record {
+    enum PMU_Latency_Test_State state;
+    unsigned int start_transmission_sent_time;
+    unsigned int report_receive_time[MAX_PMU_REPORTS];
+    ptp_timestamp report_receive_time_ptp[MAX_PMU_REPORTS];
+    unsigned int report_timestamp[MAX_PMU_REPORTS];
+    unsigned int next_report_index;
+    unsigned int num_reports;
+} PMU_Latency_Record;
+
+
+PMU_Latency_Record pmu_latency_record = {0};
+unsigned int pmu_report_buf[MAX_PMU_REPORT_MESG_LENGTH / 4];
+unsigned int pmu_report_len = 0;
+unsigned int pmu_report_rx_ts = 0;
+unsigned int pmu_report_port = 0;
+
+
+ptp_timestamp ptp_ts;
+ptp_time_info ptp_info;
+
+
 #pragma select handler
-void delay_recv_and_process_packet(chanend c_rx, chanend c_tx) {
-//    unsigned ts;
-//    unsigned src_port;
-//    unsigned len;
-    //  unsigned int buf[MAX_DELAY_MESG_LENGTH / 4];
-
-//    if (next_free_buf == next_emptiable_buf) {
-//        debug_printf("buffer overflow\n");
-//    }
-//    else {
+void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link) {
       safe_mac_rx_timed(c_rx,
-    //          (buf, unsigned char[]),
-                      (delay_buffer[next_free_buf].buf, unsigned char[]),
-                      delay_buffer[next_free_buf].len,
-                      delay_buffer[next_free_buf].rx_ts,
-                      delay_buffer[next_free_buf].src_port,
-                       MAX_DELAY_MESG_LENGTH);
+                       (pmu_report_buf, unsigned char[]),
+                       pmu_report_len,
+                       pmu_report_rx_ts,
+                       pmu_report_port,
+                       MAX_PMU_REPORT_MESG_LENGTH);
 
-      delay_buffer[next_free_buf].to_send = 1;
 
-//      debug_printf("next_free_buf %d\n", next_free_buf);
-      in_byte_counter += delay_buffer[next_free_buf].len;
-//      xscope_int(IN_BYTE_COUNTER, in_byte_counter);
+      if (pmu_report_port == SQUARE_PORT) {
+          if (pmu_latency_record.state == SENT_START_TRANSMISSION) {
+
+              unsigned char *frame = (unsigned char *) pmu_report_buf;
+
+              debug_printf("frame: 0x%x 0x%x\n", frame[42], frame[43]);
+
+              // TODO check ethertype for VLAN
+              if (frame[42] != 0xaa || frame[43] != 0x00) {
+                  // not Synchrophasor
+                  return;
+              }
+
+              unsigned int SOC = 0;
+              unsigned int FRACSEC = 0;
+
+              netmemcpy((unsigned char *) &SOC, &frame[48], 4);
+              debug_printf("SOC: %d", SOC);
+              netmemcpy((unsigned char *) &FRACSEC, &frame[52], 4); // TODO deal with/remove time quality flags
+              debug_printf("FRACSEC: %d", FRACSEC);
+
+    //          debug_printf("ts %d, port: %d, 0x%x 0x%x 0x%x 0x%x\n", pmu_report_rx_ts, pmu_report_port, pmu_report_buf[0], pmu_report_buf[1], pmu_report_buf[2], pmu_report_buf[3]);
+
+              pmu_latency_record.report_receive_time[pmu_latency_record.next_report_index] = pmu_report_rx_ts;
+              ptp_get_time_info(ptp_link, ptp_info);
+              local_timestamp_to_ptp(pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index], pmu_report_rx_ts, ptp_info);
+
+              debug_printf("ts: %d, s[0]: %d, s[1]: %d, ns: %d\n",
+                      pmu_report_rx_ts,
+                      pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index].seconds[0],
+                      pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index].seconds[1],
+                      pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index].nanoseconds);
+
+
+              pmu_latency_record.next_report_index++;
+              if (pmu_latency_record.next_report_index >= MAX_PMU_REPORTS) {
+                  pmu_latency_record.next_report_index = 0;
+//                  pmu_latency_record.state = FINISHED_RECEIVING_REPORTS;
+                  pmu_latency_record.state = IDLE;
+              }
+          }
+      }
+
+//  if (start_replay == 1) {
+//          unsigned int buf_to_forward = next_free_buf;//(next_free_buf + (MAX_BUF_LENGTH - 2)) % MAX_BUF_LENGTH;
+//      //    debug_printf("next_free_buf %d, buf_to_forward %d\n", next_free_buf, buf_to_forward);
+//
+//          if (delay_buffer[buf_to_forward].src_port == DELAYED_PORT) {
+//              if (delay_buffer[buf_to_forward].to_send == 1) {
+//                  unsigned int sentTime;
+//                  mac_tx_timed(c_tx, delay_buffer[buf_to_forward].buf, delay_buffer[buf_to_forward].len, sentTime, CIRCLE_PORT);    // TODO check ptp_tx_timed() implementation
+//                  delay_buffer[buf_to_forward].to_send = 0;
+//
+//                  // TODO do something with sentTime and ts
+//                  //      debug_printf("  TX %d bytes, port %d, t %d us\n", len, CIRCLE_PORT, (sentTime - ts) / 10);
+//                  //      debug_printf("arrived on port %d, sent on port %d, TX %d bytes, t %d us\n", src_port, CIRCLE_PORT, len, (sentTime - ts) / 10);
+//
+//                  out_byte_counter += delay_buffer[buf_to_forward].len;
+//      //            xscope_int(OUT_BYTE_COUNTER, out_byte_counter);
+//
+//
+//                  int duration_us = (sentTime - delay_buffer[buf_to_forward].rx_ts) / 100;
+//                  xscope_int(FRAME_DELAY, duration_us);
+//          //            if (duration_us > 500) {
+//      //                debug_printf("arrived on port %d, sent on port %d, TX %d bytes, t %d us\n", delay_buffer[buf_to_forward].src_port, CIRCLE_PORT, delay_buffer[buf_to_forward].len, duration_us);
+//          //            }
+//              }
+//              else {
+//                  debug_printf("found buffer already sent\n");
+//              }
+//          }
+//          else {
+//              debug_printf("unexpected source port %d\n", delay_buffer[buf_to_forward].src_port);
+//          }
+//      }
+}
+
+
+//void periodic(chanend c_tx) {
+//    if (start_replay == 1) {
+//        unsigned int buf_to_forward = next_free_buf;//(next_free_buf + (MAX_BUF_LENGTH - 2)) % MAX_BUF_LENGTH;
+//    //    debug_printf("next_free_buf %d, buf_to_forward %d\n", next_free_buf, buf_to_forward);
+//
+//        if (delay_buffer[buf_to_forward].src_port == DELAYED_PORT) {
+//            if (delay_buffer[buf_to_forward].to_send == 1) {
+//                unsigned int sentTime;
+//                mac_tx_timed(c_tx, delay_buffer[buf_to_forward].buf, delay_buffer[buf_to_forward].len, sentTime, CIRCLE_PORT);    // TODO check ptp_tx_timed() implementation
+//                delay_buffer[buf_to_forward].to_send = 0;
+//
+//                // TODO do something with sentTime and ts
+//                //      debug_printf("  TX %d bytes, port %d, t %d us\n", len, CIRCLE_PORT, (sentTime - ts) / 10);
+//                //      debug_printf("arrived on port %d, sent on port %d, TX %d bytes, t %d us\n", src_port, CIRCLE_PORT, len, (sentTime - ts) / 10);
+//
+//                out_byte_counter += delay_buffer[buf_to_forward].len;
+//    //            xscope_int(OUT_BYTE_COUNTER, out_byte_counter);
+//
+//
+//                int duration_us = (sentTime - delay_buffer[buf_to_forward].rx_ts) / 100;
+//                xscope_int(FRAME_DELAY, duration_us);
+//        //            if (duration_us > 500) {
+//    //                debug_printf("arrived on port %d, sent on port %d, TX %d bytes, t %d us\n", delay_buffer[buf_to_forward].src_port, CIRCLE_PORT, delay_buffer[buf_to_forward].len, duration_us);
+//        //            }
+//            }
+//        }
+//        else {
+//            debug_printf("unexpected source port %d\n", delay_buffer[buf_to_forward].src_port);
+//        }
 //    }
-
-//  debug_printf("RX %d bytes, port %d; total %d bytes\n", delay_buffer[next_free_buf].len, delay_buffer[next_free_buf].src_port, in_byte_counter);
-
-
-      next_free_buf++;
-      if (next_free_buf >= MAX_BUF_LENGTH) {
-          next_free_buf = 0;
-          start_replay = 1;
-      }
+//}
 
 
-//  // TODO do something with buf contents
-//  if (src_port == NORMAL_PORT) {
-//      unsigned int sentTime;
-//      mac_tx_timed(c_tx, buf, len, sentTime, DELAYED_PORT);    // TODO check ptp_tx_timed() implementation
+
+//void delay_server(chanend c_rx, chanend c_tx) {
+//  timer ptp_timer;
+//  int ptp_timeout;
 //
-//      // TODO do something with sentTime and ts
-////      debug_printf("  TX %d bytes, port %d, t %d us\n", len, DELAYED_PORT, (sentTime - ts) / 10);
-////      debug_printf("arrived on port %d, sent on port %d, TX %d bytes, t %d us\n", src_port, DELAYED_PORT, len, (sentTime - ts) / 10);
+////  mac_set_custom_filter(c_rx, MAC_FILTER_PTP);
+//  mac_set_custom_filter(c_rx, 0xFFFFFFFF);
+//  ptp_timer :> ptp_timeout;
 //
-//      int duration_us = (sentTime - ts) / 10;
-//      if (duration_us > 500) {
-//          debug_printf("arrived on port %d, sent on port %d, TX %d bytes, t %d us\n", src_port, DELAYED_PORT, len, duration_us);
-//      }
-//  }
-//  else if (src_port == DELAYED_PORT) {
-//      unsigned int sentTime;
-//      mac_tx_timed(c_tx, buf, len, sentTime, NORMAL_PORT);    // TODO check ptp_tx_timed() implementation
-//
-//      // TODO do something with sentTime and ts
-////      debug_printf("  TX %d bytes, port %d, t %d us\n", len, NORMAL_PORT, (sentTime - ts) / 10);
-////      debug_printf("arrived on port %d, sent on port %d, TX %d bytes, t %d us\n", src_port, NORMAL_PORT, len, (sentTime - ts) / 10);
-//
-//      int duration_us = (sentTime - ts) / 10;
-//      if (duration_us > 500) {
-//          debug_printf("arrived on port %d, sent on port %d, TX %d bytes, t %d us\n", src_port, NORMAL_PORT, len, duration_us);
-//      }
-//  }
-
-
-  if (start_replay == 1) {
-          unsigned int buf_to_forward = next_free_buf;//(next_free_buf + (MAX_BUF_LENGTH - 2)) % MAX_BUF_LENGTH;
-      //    debug_printf("next_free_buf %d, buf_to_forward %d\n", next_free_buf, buf_to_forward);
-
-          if (delay_buffer[buf_to_forward].src_port == DELAYED_PORT) {
-              if (delay_buffer[buf_to_forward].to_send == 1) {
-                  unsigned int sentTime;
-                  mac_tx_timed(c_tx, delay_buffer[buf_to_forward].buf, delay_buffer[buf_to_forward].len, sentTime, NORMAL_PORT);    // TODO check ptp_tx_timed() implementation
-                  delay_buffer[buf_to_forward].to_send = 0;
-
-                  // TODO do something with sentTime and ts
-                  //      debug_printf("  TX %d bytes, port %d, t %d us\n", len, NORMAL_PORT, (sentTime - ts) / 10);
-                  //      debug_printf("arrived on port %d, sent on port %d, TX %d bytes, t %d us\n", src_port, NORMAL_PORT, len, (sentTime - ts) / 10);
-
-                  out_byte_counter += delay_buffer[buf_to_forward].len;
-      //            xscope_int(OUT_BYTE_COUNTER, out_byte_counter);
-
-
-                  int duration_us = (sentTime - delay_buffer[buf_to_forward].rx_ts) / 100;
-                  xscope_int(FRAME_DELAY, duration_us);
-          //            if (duration_us > 500) {
-      //                debug_printf("arrived on port %d, sent on port %d, TX %d bytes, t %d us\n", delay_buffer[buf_to_forward].src_port, NORMAL_PORT, delay_buffer[buf_to_forward].len, duration_us);
-          //            }
-              }
-              else {
-                  debug_printf("found buffer already sent\n");
-              }
-          }
-          else {
-              debug_printf("unexpected source port %d\n", delay_buffer[buf_to_forward].src_port);
-          }
-      }
-
-
-
-//  ptp_recv(c_tx, (buf, unsigned char[]), ts, src_port, len);
-}
-
-
-void periodic(chanend c_tx) {
-    if (start_replay == 1) {
-        unsigned int buf_to_forward = next_free_buf;//(next_free_buf + (MAX_BUF_LENGTH - 2)) % MAX_BUF_LENGTH;
-    //    debug_printf("next_free_buf %d, buf_to_forward %d\n", next_free_buf, buf_to_forward);
-
-        if (delay_buffer[buf_to_forward].src_port == DELAYED_PORT) {
-            if (delay_buffer[buf_to_forward].to_send == 1) {
-                unsigned int sentTime;
-                mac_tx_timed(c_tx, delay_buffer[buf_to_forward].buf, delay_buffer[buf_to_forward].len, sentTime, NORMAL_PORT);    // TODO check ptp_tx_timed() implementation
-                delay_buffer[buf_to_forward].to_send = 0;
-
-                // TODO do something with sentTime and ts
-                //      debug_printf("  TX %d bytes, port %d, t %d us\n", len, NORMAL_PORT, (sentTime - ts) / 10);
-                //      debug_printf("arrived on port %d, sent on port %d, TX %d bytes, t %d us\n", src_port, NORMAL_PORT, len, (sentTime - ts) / 10);
-
-                out_byte_counter += delay_buffer[buf_to_forward].len;
-    //            xscope_int(OUT_BYTE_COUNTER, out_byte_counter);
-
-
-                int duration_us = (sentTime - delay_buffer[buf_to_forward].rx_ts) / 100;
-                xscope_int(FRAME_DELAY, duration_us);
-        //            if (duration_us > 500) {
-    //                debug_printf("arrived on port %d, sent on port %d, TX %d bytes, t %d us\n", delay_buffer[buf_to_forward].src_port, NORMAL_PORT, delay_buffer[buf_to_forward].len, duration_us);
-        //            }
-            }
-        }
-        else {
-            debug_printf("unexpected source port %d\n", delay_buffer[buf_to_forward].src_port);
-        }
-    }
-}
-
-
-
-void delay_server(chanend c_rx, chanend c_tx) {
-  timer ptp_timer;
-  int ptp_timeout;
-
-//  mac_set_custom_filter(c_rx, MAC_FILTER_PTP);
-  mac_set_custom_filter(c_rx, 0xFFFFFFFF);
-  ptp_timer :> ptp_timeout;
-
-  while (1) {
-    [[ordered]]
-    select {
-//        case ptp_timer when timerafter(ptp_timeout) :> void:
-//            periodic(c_tx);
-//    //            ptp_periodic(c_tx, ptp_timeout);
-//            ptp_timeout += PTP_PERIODIC_TIME;
+//  while (1) {
+//    [[ordered]]
+//    select {
+////        case ptp_timer when timerafter(ptp_timeout) :> void:
+////            periodic(c_tx);
+////    //            ptp_periodic(c_tx, ptp_timeout);
+////            ptp_timeout += PTP_PERIODIC_TIME;
+////            break;
+//        case delay_recv_and_process_packet(c_rx, c_tx):
 //            break;
-        case delay_recv_and_process_packet(c_rx, c_tx):
-            break;
-      }
-  }
-}
+//      }
+//  }
+//}
 
 
 
-void delay_server_test(chanend c_rx, chanend c_tx) {
+void delay_server_test(chanend c_rx, chanend c_tx, chanend ptp_link) {
   timer ptp_timer;
 //  timer delay_flag_timer;
   unsigned int ptp_timeout;
@@ -600,11 +550,15 @@ void delay_server_test(chanend c_rx, chanend c_tx) {
 
 //  random_generator_t gen = random_create_generator_from_seed(12345);
 
-//  mac_set_custom_filter(c_rx, MAC_FILTER_PTP);
-//  mac_set_custom_filter(c_rx, 0x1000);
+  mac_set_custom_filter(c_rx, MAC_FILTER_IP);
+
   ptp_timer :> ptp_timeout;
 
   debug_printf("start: %d bytes\n", len);
+
+
+  ptp_get_time_info(ptp_link, ptp_info);        // TODO need to call this periodically?
+
 
   while (1) {
     [[ordered]]
@@ -622,14 +576,19 @@ void delay_server_test(chanend c_rx, chanend c_tx) {
             set_UDP_dest(&udp, ip, &mac_dest[0], remote_port);
             len = write_ethernet_frame_into_buf((unsigned char *) buf, 0, 2);
 
-            unsigned int sentTime;
-            mac_tx_timed(c_tx, buf, len, sentTime, DELAYED_PORT);    // TODO check ptp_tx_timed() implementation
+            if (pmu_latency_record.state == IDLE) {
+                pmu_latency_record.next_report_index = 0;
+                mac_tx_timed(c_tx, buf, len, pmu_latency_record.start_transmission_sent_time, SQUARE_PORT);    // TODO check ptp_tx_timed() implementation
+                pmu_latency_record.state = SENT_START_TRANSMISSION;
 
-            debug_printf("generated %d bytes\n", len);
+    //            debug_printf("generated %d bytes\n", len);
 
-            delay_flag = 0;
-            xscope_int(DELAY_FLAG, delay_flag);
+                delay_flag = 0;
+                xscope_int(DELAY_FLAG, delay_flag);
+            }
 
+            break;
+        case delay_recv_and_process_packet(c_rx, c_tx, ptp_link):
             break;
         default:
             break;
@@ -644,15 +603,14 @@ void delay_server_test(chanend c_rx, chanend c_tx) {
 int main()
 {
     chan c_mac_rx[2], c_mac_tx[2];
-//    chan c_mac_rx2[1], c_mac_tx2[1];
-  chan c_ptp[1];
-//  chan connect_status;
+    chan c_ptp[1];
 
+  //    chan c_mac_rx2[1], c_mac_tx2[1];
+//  chan connect_status;
 //  ethernet_cfg_if i_cfg[1];
 //  ethernet_rx_if i_rx[1];
 //  ethernet_tx_if i_tx[1];
 //  smi_if i_smi;
-
 
   par
   {
@@ -673,23 +631,6 @@ int main()
 //      ethernet_server(mii1, smi1, mac_address, c_mac_rx, 1, c_mac_tx, 1);
 //      ethernet_server(mii2, smi2, mac_address, c_mac_rx2, 1, c_mac_tx2, 1);
     }
-//
-//
-//    on stdcore[0]: delay_server(c_mac_rx[0], c_mac_tx[0]);
-
-
-//      on tile[1]: mii_ethernet_mac(i_cfg, 1,
-//                                  i_rx, 1,
-//                                  i_tx, 1,
-//                                  p_eth_rxclk, p_eth_rxerr,
-//                                  p_eth_rxd, p_eth_rxdv,
-//                                  p_eth_txclk, p_eth_txen, p_eth_txd,
-//                                  p_eth_dummy,
-//                                  eth_rxclk, eth_txclk,
-//                                  ETH_RX_BUFFER_SIZE_WORDS);
-//      on tile[1]: lan8710a_phy_driver(i_smi, i_cfg[CFG_TO_PHY_DRIVER]);
-//      on tile[1]: smi(i_smi, p_smi_mdio, p_smi_mdc);
-
 
     // enable both these tasks for a PTP server:
     on stdcore[0]: ptp_server(c_mac_rx[0],
@@ -697,10 +638,10 @@ int main()
                               c_ptp,
                               1,
                               PTP_SLAVE_ONLY);
-    on stdcore[0]: ptp_output_test_clock(c_ptp[0], ptp_sync_port, 100000000);
+//    on stdcore[0]: ptp_output_test_clock(c_ptp[0], ptp_sync_port, 100000000);
 
 
-    on stdcore[0]: delay_server_test(c_mac_rx[1], c_mac_tx[1]);
+    on stdcore[0]: delay_server_test(c_mac_rx[1], c_mac_tx[1], c_ptp[0]);
   }
 
   return 0;

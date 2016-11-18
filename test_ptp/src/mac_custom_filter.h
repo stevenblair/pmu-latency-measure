@@ -2,6 +2,7 @@
 #define MAC_FILTER_1722  0x1
 #define MAC_FILTER_PTP   0x2
 #define MAC_FILTER_ARPIP 0x4
+#define MAC_FILTER_IP    0x10
 #define MAC_FILTER_AVB_CONTROL  0x8
 //
 //#define MII_FILTER_FORWARD_TO_OTHER_PORTS (0x80000000)
@@ -45,9 +46,12 @@ inline int mac_custom_filter(unsigned int buf[], unsigned int mac[2])
       }
 
       switch (etype) {
-        case 0xf788:
-          result = MAC_FILTER_PTP;
-          break;
+          case 0xf788:
+            result = MAC_FILTER_PTP;
+            break;
+          case 0x0008:
+            result = MAC_FILTER_IP;
+            break;
         default:
             return 0;
 //          if ((buf[0] & 0x1) || // Broadcast
