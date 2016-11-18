@@ -456,7 +456,8 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
                   diff_microseconds = (1000000 + diff_ns) / 1000;
               }
 //              debug_printf("diff: %d, %d\n", diff_s, diff_ns);
-              debug_printf("diff: %d\n", diff_microseconds);
+//              debug_printf("diff: %d\n", diff_microseconds);
+              xscope_int(FRAME_DELAY, diff_microseconds);
 
 
               pmu_latency_record.next_report_index++;
