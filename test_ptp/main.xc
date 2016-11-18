@@ -227,7 +227,8 @@ enum Command_Type { C37_118_DATA_OFF = 1, C37_118_DATA_ON = 2 };
 
 
 UDP udp;
-unsigned char buf[512];
+//unsigned char buf[512];
+unsigned int buf[512 / 4];
 uint16_t remote_port = 0;
 uint8_t ip[] = { 192, 168, 2, 19 };// 124 };
 uint8_t mac_add[] = { 0x83, 0x1c, 0x0e, 0x9b, 0x24, 0x00 };
@@ -578,13 +579,14 @@ void delay_server(chanend c_rx, chanend c_tx) {
 
 
 
-void delay_server_test() {
+void delay_server_test(chanend c_rx, chanend c_tx) {
   timer ptp_timer;
 //  timer delay_flag_timer;
   unsigned int ptp_timeout;
 //  unsigned int delay_flag_timeout;
   unsigned int delay_flag = 0;
   int len = 0;
+
 //  random_generator_t gen = random_create_generator_from_seed(12345);
 
 //  mac_set_custom_filter(c_rx, MAC_FILTER_PTP);
@@ -606,8 +608,12 @@ void delay_server_test() {
             delay_flag = 1;
             xscope_int(DELAY_FLAG, delay_flag);
 
-//            set_UDP_dest(&udp, ip, &mac_add[0], remote_port);
-//            len = write_ethernet_frame_into_buf(buf, 0, 2);
+            set_UDP_dest(&udp, ip, &mac_add[0], remote_port);
+            len = write_ethernet_frame_into_buf((unsigned char *) buf, 0, 2);
+
+            unsigned int sentTime;
+            mac_tx_timed(c_tx, buf, len, sentTime, DELAYED_PORT);    // TODO check ptp_tx_timed() implementation
+
 
             debug_printf("generated %d bytes\n", len);
 
@@ -627,7 +633,7 @@ void delay_server_test() {
 
 int main()
 {
-    chan c_mac_rx[1], c_mac_tx[1];
+    chan c_mac_rx[2], c_mac_tx[2];
 //    chan c_mac_rx2[1], c_mac_tx2[1];
   chan c_ptp[1];
 //  chan connect_status;
@@ -652,8 +658,8 @@ int main()
                                     smi1,
                                     null,
                                     mac_address,
-                                    c_mac_rx, 1,
-                                    c_mac_tx, 1);
+                                    c_mac_rx, 2,
+                                    c_mac_tx, 2);
 //      ethernet_server(mii1, smi1, mac_address, c_mac_rx, 1, c_mac_tx, 1);
 //      ethernet_server(mii2, smi2, mac_address, c_mac_rx2, 1, c_mac_tx2, 1);
     }
@@ -676,7 +682,7 @@ int main()
 
 
     // enable both these tasks for a PTP server:
-    on stdcore[1]: ptp_server(c_mac_rx[0],
+    on stdcore[0]: ptp_server(c_mac_rx[0],
                               c_mac_tx[0],
                               c_ptp,
                               1,
@@ -684,7 +690,7 @@ int main()
     on stdcore[0]: ptp_output_test_clock(c_ptp[0], ptp_sync_port, 100000000);
 
 
-    on stdcore[0]: delay_server_test();
+    on stdcore[0]: delay_server_test(c_mac_rx[1], c_mac_tx[1]);
   }
 
   return 0;
