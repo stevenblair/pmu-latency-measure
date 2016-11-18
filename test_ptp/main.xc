@@ -76,7 +76,8 @@ uint8_t IP_SOURCE[4] = { 192, 168, 2, 126 };    // TODO: get local IP address at
 uint8_t IP_DEST[4] = { 192, 168, 2, 255 };
 
 //uint8_T ETH_SOURCE[6] = { 0x00, 0x26, 0x9e, 0x53, 0x4b, 0x09 };   // TODO: get local MAC address at runtime
-uint8_t ETH_SOURCE[6] = { 0x00, 0x01, 0x05, 0x21, 0x95, 0xCE }; // TODO: get local MAC address at runtime
+//uint8_t ETH_SOURCE[6] = { 0x00, 0x01, 0x05, 0x21, 0x95, 0xCE }; // TODO: get local MAC address at runtime
+uint8_t ETH_SOURCE[6] = { 0x00, 0x22, 0x97, 0x00, 0x56, 0xa0 }; // TODO: get local MAC address at runtime
 uint8_t ETH_DEST[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 
 // a simple memcpy implementation, that reverses endian-ness
@@ -231,7 +232,8 @@ UDP udp;
 unsigned int buf[512 / 4];
 uint16_t remote_port = 0;
 uint8_t ip[] = { 192, 168, 2, 19 };// 124 };
-uint8_t mac_add[] = { 0x83, 0x1c, 0x0e, 0x9b, 0x24, 0x00 };
+uint8_t mac_dest[] = { 0x83, 0x1c, 0x0e, 0x9b, 0x24, 0x00 };
+uint8_t mac_src[] = { 0x83, 0x1c, 0x0e, 0x9b, 0x24, 0x00 };
 
 uint8_t buf_payload[512];
 //uint8_t buf_out[512];
@@ -307,10 +309,17 @@ uint16_t write_ethernet_frame_into_buf(unsigned char *buf, uint32_t SOC_recv, ui
 };
 
 
+#define MAX_PMU_REPORTS 1000
+
+typedef struct _PMU_latency_record {
+    unsigned int start_transmission_sent_time;
+    unsigned int report_receive_time[MAX_PMU_REPORTS];
+    unsigned int report_index;
+    unsigned int num_reports;
+} PMU_Latency_Record;
 
 
-
-
+PMU_Latency_Record pmu_latency_record;
 
 //// Here are the port definitions required by ethernet. This port assignment
 //// is for the L16 sliceKIT with the ethernet slice plugged into the
@@ -587,6 +596,8 @@ void delay_server_test(chanend c_rx, chanend c_tx) {
   unsigned int delay_flag = 0;
   int len = 0;
 
+  init_existing_UDP(&udp, NULL, NULL);
+
 //  random_generator_t gen = random_create_generator_from_seed(12345);
 
 //  mac_set_custom_filter(c_rx, MAC_FILTER_PTP);
@@ -608,12 +619,11 @@ void delay_server_test(chanend c_rx, chanend c_tx) {
             delay_flag = 1;
             xscope_int(DELAY_FLAG, delay_flag);
 
-            set_UDP_dest(&udp, ip, &mac_add[0], remote_port);
+            set_UDP_dest(&udp, ip, &mac_dest[0], remote_port);
             len = write_ethernet_frame_into_buf((unsigned char *) buf, 0, 2);
 
             unsigned int sentTime;
             mac_tx_timed(c_tx, buf, len, sentTime, DELAYED_PORT);    // TODO check ptp_tx_timed() implementation
-
 
             debug_printf("generated %d bytes\n", len);
 
