@@ -79,8 +79,8 @@ static unsigned prev_pdelay_local_ts;
 
 static int tile_timer_offset;
 
-#define DEBUG_PRINT 1
-#define DEBUG_PRINT_ANNOUNCE 1
+#define DEBUG_PRINT 0
+#define DEBUG_PRINT_ANNOUNCE 0
 
 ptp_port_role_t ptp_current_state()
 {
@@ -1111,9 +1111,9 @@ void ptp_recv(chanend c_tx,
 
   // TODO: Check if port state is disabled
   debug_printf("PTP rx, port %d\n", src_port);
-  if (src_port != 0) {
-      return;
-  }
+//  if (src_port != 0) {
+//      return;
+//  }
 
   switch ((msg->transportSpecific_messageType & 0xf))
     {
