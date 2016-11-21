@@ -322,7 +322,7 @@ static void process_received_frame(int buf,
     }
 
 #if (NUM_ETHERNET_PORTS > 1) && !defined(DISABLE_ETHERNET_PORT_FORWARDING)
-    if (result & MII_FILTER_FORWARD_TO_OTHER_PORTS && src_port == 0) {
+    if (result & MII_FILTER_FORWARD_TO_OTHER_PORTS) {
       tcount++;
       mii_packet_set_forwarding(buf, 0xFFFFFFFF);
     }

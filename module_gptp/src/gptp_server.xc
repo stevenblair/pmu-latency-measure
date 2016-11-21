@@ -48,7 +48,7 @@ void ptp_server_init(chanend c_rx, chanend c_tx,
                      int &ptp_timeout)
 {
 
-  mac_set_custom_filter(c_rx, MAC_FILTER_PTP);
+    mac_set_custom_filter(c_rx, 0xFFFFFFFF);
 
   ptp_timer :> ptp_timeout;
 

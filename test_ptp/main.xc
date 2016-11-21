@@ -406,14 +406,14 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
                        pmu_report_port,
                        MAX_PMU_REPORT_MESG_LENGTH);
 
-//      debug_printf("frame rx, port %d\n", pmu_report_port);
+      debug_printf("frame rx, port %d\n", pmu_report_port);
 
       if (pmu_report_port == SQUARE_PORT) {
 //          if (pmu_latency_record.state == SENT_START_TRANSMISSION) {
 
               unsigned char *frame = (unsigned char *) pmu_report_buf;
 
-//              debug_printf("frame: 0x%x 0x%x\n", frame[42], frame[43]);
+              debug_printf("frame: 0x%x 0x%x\n", frame[42], frame[43]);
 
               // TODO check ethertype for VLAN
               if (frame[42] != 0xaa || frame[43] != 0x01) {
@@ -467,6 +467,9 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
                   pmu_latency_record.state = IDLE;
               }
 //          }
+      }
+      else {
+          debug_printf("frame rx, port %d\n", pmu_report_port);
       }
 
 //  if (start_replay == 1) {
@@ -578,7 +581,7 @@ void delay_server_test(chanend c_rx, chanend c_tx, chanend ptp_link) {
 
   ptp_timer :> ptp_timeout;
 
-  debug_printf("start: %d bytes\n", len);
+//  debug_printf("start: %d bytes\n", len);
 
 
   ptp_get_time_info(ptp_link, ptp_info);        // TODO need to call this periodically?
@@ -636,13 +639,6 @@ int main()
     chan c_mac_rx[2], c_mac_tx[2];
     chan c_ptp[1];
 
-  //    chan c_mac_rx2[1], c_mac_tx2[1];
-//  chan connect_status;
-//  ethernet_cfg_if i_cfg[1];
-//  ethernet_rx_if i_rx[1];
-//  ethernet_tx_if i_tx[1];
-//  smi_if i_smi;
-
   par
   {
     on ETHERNET_DEFAULT_TILE:
@@ -657,8 +653,8 @@ int main()
                                     smi1,
                                     null,
                                     mac_address,
-                                    c_mac_rx, 2,
-                                    c_mac_tx, 2);
+                                    c_mac_rx, 1,
+                                    c_mac_tx, 1);
 //      ethernet_server(mii1, smi1, mac_address, c_mac_rx, 1, c_mac_tx, 1);
 //      ethernet_server(mii2, smi2, mac_address, c_mac_rx2, 1, c_mac_tx2, 1);
     }
@@ -670,7 +666,7 @@ int main()
                               1,
 //                              PTP_GRANDMASTER_CAPABLE);
                               PTP_SLAVE_ONLY);
-//    on stdcore[0]: ptp_output_test_clock(c_ptp[0], ptp_sync_port, 100000000);
+    on stdcore[0]: ptp_output_test_clock(c_ptp[0], ptp_sync_port, 100000000);
 
 
     on stdcore[0]: delay_server_test(c_mac_rx[1], c_mac_tx[1], c_ptp[0]);

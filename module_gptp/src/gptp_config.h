@@ -7,7 +7,7 @@
 
 #define PTP_VERSION_NUMBER       (2)
 
-#define PTP_NUM_PORTS   1//(NUM_ETHERNET_MASTER_PORTS)
+#define PTP_NUM_PORTS   (NUM_ETHERNET_MASTER_PORTS)
 
 #define PTP_LOG_MIN_PDELAY_REQ_INTERVAL            (0)
 #define PTP_LOG_SYNC_INTERVAL                      (-3)
@@ -37,7 +37,8 @@
 #define PTP_ANNOUNCE_TLV_TYPE (0x8)
 #define PTP_MAXIMUM_PATH_TRACE_TLV (8)
 
-#define PTP_8021AS_DEST_ADDR { 0x01, 0x80, 0xc2, 0x0, 0x0, 0xe }
+//#define PTP_8021AS_DEST_ADDR { 0x01, 0x80, 0xc2, 0x0, 0x0, 0xe }
+#define PTP_8021AS_DEST_ADDR { 0x01, 0x1b, 0x19, 0x0, 0x0, 0x0 }
 
 #define PTP_8021AS_LEGACY_ADDR { 0x01, 0x00, 0x5e, 0x0, 1, 129 }
 

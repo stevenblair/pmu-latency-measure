@@ -185,6 +185,7 @@ int mac_custom_filter_coerce1(unsigned int buf[], unsigned int mac[2])
 #if ETHERNET_FILTER_ENABLE_USER_DATA
   return mac_custom_filter(buf, mac, user_data);
 #else
-  return 0xffffffff;//mac_custom_filter(buf);
+//  return 0xffffffff;//
+  mac_custom_filter(buf, mac);
 #endif
 }
