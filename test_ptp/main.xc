@@ -611,6 +611,13 @@ void delay_server_test(chanend c_rx, chanend c_tx, chanend ptp_link) {
                 xscope_int(DELAY_FLAG, delay_flag);
             }
 
+//            // test port configurations
+//            unsigned char *buf_ptr = (unsigned char *) buf;
+//            buf_ptr[42] = CIRCLE_PORT;
+//            mac_tx_timed(c_tx, buf, len, pmu_latency_record.start_transmission_sent_time, CIRCLE_PORT);
+//            buf_ptr[42] = SQUARE_PORT;
+//            mac_tx_timed(c_tx, buf, len, pmu_latency_record.start_transmission_sent_time, SQUARE_PORT);
+
             break;
         case delay_recv_and_process_packet(c_rx, c_tx, ptp_link):
             break;
