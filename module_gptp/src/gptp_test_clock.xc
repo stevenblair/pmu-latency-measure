@@ -1,3 +1,4 @@
+// Copyright (c) 2011-2016, XMOS Ltd, All rights reserved
 #include <xs1.h>
 #include "gptp.h"
 
@@ -16,7 +17,7 @@ void ptp_output_test_clock(chanend ptp_link,
     tmr when timerafter(t) :> void;
     test_clock_port <: x;
     x = ~x;
-    t += 1000000;
+    t += 100000000;
   }
 #else
 
@@ -31,7 +32,7 @@ void ptp_output_test_clock(chanend ptp_link,
     tmr :> t;
     local_timestamp_to_ptp(ptp_ts, t, ptp_info);
 
-    ptp_ts.seconds[0] += 2;
+    ptp_ts.seconds[0] += 1;
     ptp_ts.nanoseconds = 0;
 
     t = ptp_timestamp_to_local(ptp_ts, ptp_info);

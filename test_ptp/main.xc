@@ -327,7 +327,7 @@ on tile[1]: mii_interface_t mii2 = {
 };
 
 // PTP sync port
-on stdcore[0]: port ptp_sync_port = XS1_PORT_1C;//XS1_PORT_4A;
+on stdcore[0]: port ptp_sync_port = XS1_PORT_4A;//XS1_PORT_1C;//
 
 
 
@@ -578,8 +578,8 @@ void delay_server_test(chanend c_rx, chanend c_tx, chanend ptp_link) {
 
 //  random_generator_t gen = random_create_generator_from_seed(12345);
 
-//  mac_set_custom_filter(c_rx, MAC_FILTER_IP);
-  mac_set_custom_filter(c_rx, 0xFFFFFFFF);
+  mac_set_custom_filter(c_rx, MAC_FILTER_IP);
+//  mac_set_custom_filter(c_rx, 0xFFFFFFFF);
 
   ptp_timer :> ptp_timeout;
 
@@ -608,7 +608,7 @@ void delay_server_test(chanend c_rx, chanend c_tx, chanend ptp_link) {
             if (pmu_latency_record.state == IDLE) {
                 pmu_latency_record.next_report_index = 0;
                 mac_tx_timed(c_tx, buf, len, pmu_latency_record.start_transmission_sent_time, CIRCLE_PORT);    // TODO check ptp_tx_timed() implementation
-                mac_tx_timed(c_tx, buf, len, pmu_latency_record.start_transmission_sent_time, SQUARE_PORT);    // TODO check ptp_tx_timed() implementation
+//                mac_tx_timed(c_tx, buf, len, pmu_latency_record.start_transmission_sent_time, SQUARE_PORT);    // TODO check ptp_tx_timed() implementation
 //                pmu_latency_record.state = SENT_START_TRANSMISSION;
 
     //            debug_printf("generated %d bytes\n", len);
@@ -669,7 +669,7 @@ int main()
                               1,
 //                              PTP_GRANDMASTER_CAPABLE);
                               PTP_SLAVE_ONLY);
-//    on stdcore[0]: ptp_output_test_clock(c_ptp[0], ptp_sync_port, 100000000);
+//    on stdcore[0]: ptp_output_test_clock(c_ptp[0], ptp_sync_port, 1000000000);
 
 
     on stdcore[0]: delay_server_test(c_mac_rx[1], c_mac_tx[1], c_ptp[0]);

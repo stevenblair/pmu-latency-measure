@@ -288,7 +288,7 @@ static void process_received_frame(int buf,
       int match = 0;
       match = (custom_filter_mask[i] & result);
 
-      if (match && src_port == 1) {
+      if (match) {
         // We have a match, add the packet to the client's
         // packet queue (if there is space)
         int rdIndex = link_status[i].rdIndex;

@@ -20,8 +20,9 @@
     <!-- <Probe name="Probe Name" type="CONTINUOUS" datatype="UINT" units="Value" enabled="true"/> -->
     <!-- From the target code, call: xscope_int(PROBE_NAME, value); -->
     
-    <!-- <Probe name="PACKET_LEN" type="CONTINUOUS" datatype="INT" units="Value" enabled="true"/>
-    <Probe name="IN_BYTE_COUNTER" type="CONTINUOUS" datatype="INT" units="Value" enabled="true"/>
+    <Probe name="PACKET_LEN" type="CONTINUOUS" datatype="INT" units="Value" enabled="true"/>
+    <Probe name="INTERFACE_NUM" type="CONTINUOUS" datatype="INT" units="Value" enabled="true"/>
+    <!-- <Probe name="IN_BYTE_COUNTER" type="CONTINUOUS" datatype="INT" units="Value" enabled="true"/>
     <Probe name="OUT_BYTE_COUNTER" type="CONTINUOUS" datatype="INT" units="Value" enabled="true"/> -->
     <Probe name="FRAME_DELAY" type="CONTINUOUS" datatype="INT" units="Value" enabled="true"/>
     <Probe name="DELAY_FLAG" type="CONTINUOUS" datatype="INT" units="Value" enabled="true"/>

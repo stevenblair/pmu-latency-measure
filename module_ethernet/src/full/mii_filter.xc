@@ -74,8 +74,6 @@ void ethernet_filter(const char mac_address[], streaming chanend c[NUM_ETHERNET_
                 {
                     int length = mii_packet_get_length(buf);
 
-//                    xscope_int(PACKET_LEN, length);
-
 #if ETHERNET_RX_CRC_ERROR_CHECK
                     unsigned poly = 0xEDB88320;
                     unsigned crc = mii_packet_get_crc(buf);
@@ -104,7 +102,10 @@ void ethernet_filter(const char mac_address[], streaming chanend c[NUM_ETHERNET_
                             break;
                     }
 #endif
-                    mii_packet_set_src_port(buf,ifnum);
+                    mii_packet_set_src_port(buf, ifnum);
+
+                    xscope_int(PACKET_LEN, length);
+                    xscope_int(INTERFACE_NUM, ifnum + 1);
 
                     if (length < 60)
                     {
@@ -155,6 +156,7 @@ void ethernet_filter(const char mac_address[], streaming chanend c[NUM_ETHERNET_
                             } else {
 #if ETHERNET_COUNT_PACKETS
                                 ethernet_filtered_by_address++;
+
 #endif
                             }
                             // We need to zero the timestamp ID in case the frame is forwarded on another port
@@ -168,6 +170,8 @@ void ethernet_filter(const char mac_address[], streaming chanend c[NUM_ETHERNET_
                             mii_packet_set_filter_result(buf, filter_result);
                             mii_packet_set_stage(buf, 1);
                         }
+
+
                     }
                     break;
                 } // end if (buf)
@@ -186,6 +190,6 @@ int mac_custom_filter_coerce1(unsigned int buf[], unsigned int mac[2])
   return mac_custom_filter(buf, mac, user_data);
 #else
 //  return 0xffffffff;//
-  mac_custom_filter(buf, mac);
+  return mac_custom_filter(buf, mac);
 #endif
 }
