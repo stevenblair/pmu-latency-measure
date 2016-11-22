@@ -379,10 +379,11 @@ typedef struct _PMU_latency_record {
     unsigned int report_receive_time[MAX_PMU_REPORTS];
     ptp_timestamp report_receive_time_ptp[MAX_PMU_REPORTS];
     unsigned int report_timestamp[MAX_PMU_REPORTS];
+    unsigned int diff_microseconds[MAX_PMU_REPORTS];
     unsigned int next_report_index;
     unsigned int num_reports;
+    unsigned int max_reporting_latency;
 } PMU_Latency_Record;
-
 
 PMU_Latency_Record pmu_latency_record = {0};
 unsigned int pmu_report_buf[MAX_PMU_REPORT_MESG_LENGTH / 4];
@@ -397,6 +398,22 @@ ptp_time_info ptp_info;
 unsigned int LEAP_SECONDS = 36;
 
 
+
+
+void update_reporting_latency_results() {
+    pmu_latency_record.max_reporting_latency = 0;
+    int i = 0;
+
+    for (i = 0; i < MAX_PMU_REPORTS; i++) {
+        if (pmu_latency_record.diff_microseconds[i] > pmu_latency_record.max_reporting_latency) {
+            pmu_latency_record.max_reporting_latency = pmu_latency_record.diff_microseconds[i];
+        }
+    }
+
+    xscope_int(MAX_REPORTING_LATENCY, pmu_latency_record.max_reporting_latency);
+}
+
+
 #pragma select handler
 void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link) {
       safe_mac_rx_timed(c_rx,
@@ -406,15 +423,15 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
                        pmu_report_port,
                        MAX_PMU_REPORT_MESG_LENGTH);
 
-      debug_printf("frame rx, port %d\n", pmu_report_port);
+//      debug_printf("frame rx, port %d\n", pmu_report_port);
 
-      unsigned char *frame = (unsigned char *) pmu_report_buf;
-      debug_printf("frame: 0x%x 0x%x\n", frame[42], frame[43]);
+      xscope_int(INTERFACE_NUM, pmu_report_port);
 
-      if (pmu_report_port == CIRCLE_PORT) {
+      if (pmu_report_port == SQUARE_PORT) {
 //          if (pmu_latency_record.state == SENT_START_TRANSMISSION) {
 
-              debug_printf("frame: 0x%x 0x%x\n", frame[42], frame[43]);
+              unsigned char *frame = (unsigned char *) pmu_report_buf;
+//              debug_printf("frame: 0x%x 0x%x\n", frame[42], frame[43]);
 
               // TODO check ethertype for VLAN
               if (frame[42] != 0xaa || frame[43] != 0x01) {
@@ -448,30 +465,37 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
 
               int diff_microseconds = 0;
               int diff_s = (pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index].seconds[0] - LEAP_SECONDS) - SOC;
-              int diff_ns = pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index].nanoseconds / 1000 - FRACSEC;
+              int diff_ns = pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index].nanoseconds - FRACSEC * 1000;
 
               if (diff_s == 0) {
                   diff_microseconds = diff_ns / 1000;
               }
               else if (diff_s == 1) {
-                  diff_microseconds = (1000000 + diff_ns) / 1000;
+                  diff_microseconds = (1000000000 + diff_ns) / 1000;
               }
+
+              pmu_latency_record.diff_microseconds[pmu_latency_record.next_report_index] = diff_microseconds;
+
 //              debug_printf("diff: %d, %d\n", diff_s, diff_ns);
 //              debug_printf("diff: %d\n", diff_microseconds);
-              xscope_int(FRAME_DELAY, diff_microseconds);
 
+              xscope_int(REPORTING_LATENCY, diff_microseconds);
+              xscope_int(MAX_REPORTING_LATENCY, pmu_latency_record.max_reporting_latency);
 
               pmu_latency_record.next_report_index++;
               if (pmu_latency_record.next_report_index >= MAX_PMU_REPORTS) {
                   pmu_latency_record.next_report_index = 0;
+
+                  update_reporting_latency_results();
+
 //                  pmu_latency_record.state = FINISHED_RECEIVING_REPORTS;
                   pmu_latency_record.state = IDLE;
               }
 //          }
       }
-      else {
-          debug_printf("frame rx, port %d\n", pmu_report_port);
-      }
+//      else {
+//          debug_printf("frame rx, port %d\n", pmu_report_port);
+//      }
 
 //  if (start_replay == 1) {
 //          unsigned int buf_to_forward = next_free_buf;//(next_free_buf + (MAX_BUF_LENGTH - 2)) % MAX_BUF_LENGTH;
@@ -607,8 +631,7 @@ void delay_server_test(chanend c_rx, chanend c_tx, chanend ptp_link) {
 
             if (pmu_latency_record.state == IDLE) {
                 pmu_latency_record.next_report_index = 0;
-                mac_tx_timed(c_tx, buf, len, pmu_latency_record.start_transmission_sent_time, CIRCLE_PORT);    // TODO check ptp_tx_timed() implementation
-//                mac_tx_timed(c_tx, buf, len, pmu_latency_record.start_transmission_sent_time, SQUARE_PORT);    // TODO check ptp_tx_timed() implementation
+                mac_tx_timed(c_tx, buf, len, pmu_latency_record.start_transmission_sent_time, SQUARE_PORT);
 //                pmu_latency_record.state = SENT_START_TRANSMISSION;
 
     //            debug_printf("generated %d bytes\n", len);

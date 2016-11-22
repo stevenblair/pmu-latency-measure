@@ -12,7 +12,7 @@
 #include "mii_malloc.h"
 #include "mii_filter.h"
 #include "mac_filter.h"
-#include <xscope.h>
+//#include <xscope.h>
 
 #if ETHERNET_ENABLE_FULL_TIMINGS
 // Smallest non-HP packet + interframe gap is 84 bytes = 6.72 us
@@ -104,8 +104,8 @@ void ethernet_filter(const char mac_address[], streaming chanend c[NUM_ETHERNET_
 #endif
                     mii_packet_set_src_port(buf, ifnum);
 
-                    xscope_int(PACKET_LEN, length);
-                    xscope_int(INTERFACE_NUM, ifnum + 1);
+//                    xscope_int(PACKET_LEN, length);
+//                    xscope_int(INTERFACE_NUM, ifnum + 1);
 
                     if (length < 60)
                     {

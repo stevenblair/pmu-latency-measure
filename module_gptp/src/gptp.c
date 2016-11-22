@@ -316,7 +316,7 @@ static int update_adjust(ptp_timestamp *master_ts,
 #if PTP_THROW_AWAY_SYNC_OUTLIERS
     if (master_diff > 150000000 || master_diff < 100000000) {
       prev_adjust_valid = 0;
-      debug_printf("PTP threw away Sync outlier (master_diff %d)\n", master_diff);
+//      debug_printf("PTP threw away Sync outlier (master_diff %d)\n", master_diff);
       return 1;
     }
 #endif
@@ -1110,7 +1110,7 @@ void ptp_recv(chanend c_tx,
   local_ingress_ts = local_ingress_ts - tile_timer_offset;
 
   // TODO: Check if port state is disabled
-  debug_printf("PTP rx, port %d\n", src_port);
+//  debug_printf("PTP rx, port %d\n", src_port);
 //  if (src_port != 0) {
 //      return;
 //  }
