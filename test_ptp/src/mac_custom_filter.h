@@ -6,6 +6,7 @@
 //#define MAC_FILTER_1722  0x1
 #define MAC_FILTER_PTP   0x2
 //#define MAC_FILTER_ARPIP 0x4
+#define MAC_FILTER_ARP 0x4
 #define MAC_FILTER_IP    0x1000
 //#define MAC_FILTER_AVB_CONTROL  0x8
 //
@@ -59,6 +60,9 @@ inline int mac_custom_filter(unsigned int buf[], unsigned int mac[2])
             break;
           case 0x0008:
             result |= MAC_FILTER_IP;
+            break;
+          case 0x0608:
+            result |= MAC_FILTER_ARP;
             break;
         default:
 //          if ((buf[0] & 0x1) || // Broadcast

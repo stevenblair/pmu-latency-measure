@@ -55,11 +55,15 @@ typedef struct udp_header {
     IP ip;
 } UDP;
 
-uint8_t ETH_SOURCE[6] = { 0xa0, 0x56, 0x00, 0x97, 0x22, 0x00 }; // default; is overridden by local MAC address value at runtime
-uint8_t ETH_DEST[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+// TODO reverse MAC encoding
+// TODO check if broadcast works with ARP in use
 
-uint8_t IP_SOURCE[4] = { 192, 168, 2, 19 }; // local IP address; set to approprate value for your network
-uint8_t IP_DEST[4] = { 192, 168, 2, 255 };  // set to PMU's IP address, or leave as broadcast
+uint8_t ETH_SOURCE[6] = { 0xa0, 0x56, 0x00, 0x97, 0x22, 0x00 }; // default; is overridden by local MAC address value at runtime
+uint8_t ETH_DEST[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };  // set to PMU's MAC address, or leave as broadcast
+//uint8_t ETH_DEST[6] = { 0x6d, 0x90, 0x4f, 0xc2, 0x50, 0x00 };  // set to PMU's MAC address, or leave as broadcast
+
+uint8_t IP_SOURCE[4] = { 192, 168, 2, 129 }; // local IP address; set to approprate value for your network
+uint8_t IP_DEST[4] = { 192, 168, 2, 23 };  // set to PMU's IP address, or leave as broadcast
 
 // a simple memcpy implementation, that reverses endian-ness
 void reversememcpy(unsigned char *dst, const unsigned char *src, unsigned int len) {
@@ -191,6 +195,7 @@ enum Message_Type { C37_118_Data, C37_118_CFG_1, C37_118_CFG_2, C37_118_CFG_3, C
 enum Command_Type { C37_118_DATA_OFF = 1, C37_118_DATA_ON = 2 };
 
 UDP udp;
+uint16_t IDCODE = 2;
 unsigned int pmu_frame_buf[512 / 4];
 //uint16_t remote_port = 4713;
 //uint8_t ip[] = { 192, 168, 2, 126 };
@@ -219,7 +224,7 @@ uint16_t ComputeCRC(unsigned char *buf, unsigned char len) {
     return crc;
 }
 
-uint16_t write_data_transmission_frame(unsigned char *buf, uint32_t SOC_recv, uint16_t transmission_state) {
+uint16_t write_data_transmission_frame(unsigned char *buf, uint32_t SOC_recv, uint32_t FRACSEC, uint16_t transmission_state) {
     uint16_t len = 0;
     unsigned char *FRAMESIZE_ptr;
     uint16_t FRAMESIZE = 0;
@@ -231,14 +236,13 @@ uint16_t write_data_transmission_frame(unsigned char *buf, uint32_t SOC_recv, ui
     FRAMESIZE_ptr = &buf[len];  // remember FRAMESIZE location for later
     len += sizeof FRAMESIZE;
 
-    uint16_t IDCODE = 2;
     netmemcpy(&buf[len], (const void*) &IDCODE, sizeof IDCODE);
     len += sizeof IDCODE;
 
     netmemcpy(&buf[len], (const void*)&SOC_recv, sizeof SOC_recv);
     len += sizeof SOC_recv;
 
-    uint32_t FRACSEC = 0;
+//    uint32_t FRACSEC = 0;
     netmemcpy(&buf[len], (const void*) &FRACSEC, sizeof FRACSEC);
     len += sizeof FRACSEC;
 
@@ -255,11 +259,11 @@ uint16_t write_data_transmission_frame(unsigned char *buf, uint32_t SOC_recv, ui
     return len;
 };
 
-uint16_t write_ethernet_frame_into_buf(unsigned char *buf, uint32_t SOC_recv, uint16_t transmission_state) {
+uint16_t write_ethernet_frame_into_buf(unsigned char *buf, uint32_t SOC_recv, uint32_t FRACSEC, uint16_t transmission_state) {
     uint16_t len_out = 0;
     uint16_t len_payload = 0;
 
-    len_payload = write_data_transmission_frame(buf_payload, SOC_recv, transmission_state);
+    len_payload = write_data_transmission_frame(buf_payload, SOC_recv, FRACSEC, transmission_state);
 
     len_out = encode_UDP(buf, &udp, (const char*)buf_payload, len_payload);
 
@@ -350,6 +354,8 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
 
     xscope_int(INTERFACE_NUM, pmu_report_port);
 
+//    debug_printf("frame on port: %d\n", pmu_report_port);
+
     if (pmu_report_port == SQUARE_PORT) {
         unsigned char *frame = (unsigned char *) pmu_report_buf;
 
@@ -410,7 +416,9 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
 void latency_watcher(chanend c_rx, chanend c_tx, chanend ptp_link) {
     timer periodic_timer;
     unsigned int periodic_timeout;
+    unsigned int time = 0;
     unsigned int len = 0;
+    ptp_timestamp local_time;
 
     char mac_address[6];
     otp_board_info_get_mac(otp_ports_tile_0, 0, mac_address);
@@ -418,19 +426,25 @@ void latency_watcher(chanend c_rx, chanend c_tx, chanend ptp_link) {
 
     mac_set_custom_filter(c_rx, MAC_FILTER_IP);
 
+    // TODO deal with ARP
+
     periodic_timer :> periodic_timeout;
-    ptp_get_time_info(ptp_link, ptp_info);        // TODO need to call this periodically?
+    ptp_get_time_info(ptp_link, ptp_info);        // TODO need to call this periodically?   TODO can share this instance?
 
     while (1) {
         [[ordered]]
          select {
          case delay_recv_and_process_packet(c_rx, c_tx, ptp_link):
-                    break;
-         case periodic_timer when timerafter(periodic_timeout) :> void:
+             break;
+         case periodic_timer when timerafter(periodic_timeout) :> time:
              periodic_timeout += 100000000;
 
+             ptp_get_time_info(ptp_link, ptp_info);
+             local_timestamp_to_ptp(local_time, time, ptp_info);
+//             debug_printf("time: %d.%d\n", local_time.seconds[0], local_time.nanoseconds);
+
 //             set_UDP_dest(&udp, ip, &mac_dest[0], remote_port);
-             len = write_ethernet_frame_into_buf((unsigned char *) pmu_frame_buf, 0, 2);
+             len = write_ethernet_frame_into_buf((unsigned char *) pmu_frame_buf, local_time.seconds[0], local_time.nanoseconds / 1000, 2);
 
              if (pmu_latency_record.state == IDLE) {
                  pmu_latency_record.next_report_index = 0;
@@ -468,8 +482,8 @@ int main() {
                                   c_mac_tx[0],
                                   c_ptp,
                                   1,
-    //                              PTP_GRANDMASTER_CAPABLE);
-                                  PTP_SLAVE_ONLY);
+                                  PTP_GRANDMASTER_CAPABLE);
+//                                  PTP_SLAVE_ONLY);
     //    on tile[0]: ptp_output_test_clock(c_ptp[0], ptp_sync_port, 1000000000);
 
         on tile[0]: latency_watcher(c_mac_rx[1], c_mac_tx[1], c_ptp[0]);
