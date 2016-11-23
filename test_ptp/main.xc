@@ -59,8 +59,8 @@ typedef struct udp_header {
 // TODO check if broadcast works with ARP in use
 
 uint8_t ETH_SOURCE[6] = { 0xa0, 0x56, 0x00, 0x97, 0x22, 0x00 }; // default; is overridden by local MAC address value at runtime
-uint8_t ETH_DEST[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };  // set to PMU's MAC address, or leave as broadcast
-//uint8_t ETH_DEST[6] = { 0x6d, 0x90, 0x4f, 0xc2, 0x50, 0x00 };  // set to PMU's MAC address, or leave as broadcast
+//uint8_t ETH_DEST[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };  // set to PMU's MAC address, or leave as broadcast
+uint8_t ETH_DEST[6] = { 0x6d, 0x90, 0x4f, 0xc2, 0x50, 0x00 };  // set to PMU's MAC address, or leave as broadcast
 
 uint8_t IP_SOURCE[4] = { 192, 168, 2, 129 }; // local IP address; set to approprate value for your network
 uint8_t IP_DEST[4] = { 192, 168, 2, 23 };  // set to PMU's IP address, or leave as broadcast
@@ -348,11 +348,11 @@ int ARP_write(unsigned char ARP_sender_MAC_address[6], unsigned int ARP_sender_I
     unsigned char *frame = (unsigned char *) ARP_buf;
     int len = 0;
 
-    memcpy(&frame[len], udp.ip.eth.source, sizeof(udp.ip.eth.source));
-    len += sizeof(udp.ip.eth.source);
-    memcpy(&frame[len], ARP_sender_MAC_address, sizeof(ARP_sender_MAC_address));
+    netmemcpy(&frame[len], ARP_sender_MAC_address, sizeof(ARP_sender_MAC_address));
 //    memcpy(&frame[len], ETH_DEST, sizeof(ETH_DEST));
     len += sizeof(ARP_sender_MAC_address);
+    netmemcpy(&frame[len], udp.ip.eth.source, sizeof(udp.ip.eth.source));
+    len += sizeof(udp.ip.eth.source);
 
     unsigned short etype = 0x0806;
     netmemcpy(&frame[len], (const unsigned char *) &etype, sizeof(etype));
@@ -376,17 +376,44 @@ int ARP_write(unsigned char ARP_sender_MAC_address[6], unsigned int ARP_sender_I
     netmemcpy(&frame[len], (const unsigned char *) &response, sizeof(response));
     len += sizeof(response);
 
-    memcpy(&frame[len], udp.ip.eth.source, sizeof(udp.ip.eth.source));
+    netmemcpy(&frame[len], udp.ip.eth.source, sizeof(udp.ip.eth.source));
     len += sizeof(udp.ip.eth.source);
-    memcpy(&frame[len], (const unsigned char *) &udp.ip.source, sizeof(udp.ip.source));
+    netmemcpy(&frame[len], (const unsigned char *) &udp.ip.source, sizeof(udp.ip.source));
     len += sizeof(udp.ip.source);
 
-    memcpy(&frame[len], ARP_sender_MAC_address, sizeof(ARP_sender_MAC_address));
+    netmemcpy(&frame[len], ARP_sender_MAC_address, sizeof(ARP_sender_MAC_address));
     len += sizeof(ARP_sender_MAC_address);
-    memcpy(&frame[len], (const unsigned char *) &ARP_sender_IP_address, sizeof(ARP_sender_IP_address));
+    netmemcpy(&frame[len], (const unsigned char *) &ARP_sender_IP_address, sizeof(ARP_sender_IP_address));
     len += sizeof(ARP_sender_IP_address);
 
+
+    // add padding
+    if (len < 60) {
+        len = 60;
+    }
+
     return len;
+}
+
+void print_bytes(unsigned int ARP_buf[], unsigned int len) {
+    unsigned char *ARP_frame = (unsigned char *) ARP_buf;
+
+    for (int b = 0; b < len; b++) {
+        if (ARP_frame[b] < 16) {
+            debug_printf(" %x ", ARP_frame[b]);
+        }
+        else {
+            debug_printf("%x ", ARP_frame[b]);
+        }
+
+        if ((b + 1) % 8 == 0) {
+            debug_printf("  ");
+        }
+        if ((b + 1) % 16 == 0) {
+            debug_printf("\n");
+        }
+    }
+    debug_printf("\n");
 }
 
 #pragma select handler
@@ -414,22 +441,27 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
 
         if (etype == 0x0608) {
             // ARP
+            unsigned short ARP_operation = 0;
             unsigned char ARP_sender_MAC_address[6];
             unsigned int ARP_sender_IP_address = 0;
             unsigned int ARP_target_IP_address = 0;
-            unsigned short ARP_operation = 0;
+            unsigned int ARP_local_IP_address = 0;
 
             netmemcpy((unsigned char *) &ARP_operation, &frame[20], sizeof(ARP_operation));
             netmemcpy((unsigned char *) &ARP_sender_MAC_address, &frame[22], sizeof(ARP_sender_MAC_address));
             netmemcpy((unsigned char *) &ARP_sender_IP_address, &frame[28], sizeof(ARP_sender_IP_address));
-            netmemcpy((unsigned char *) &ARP_target_IP_address, (unsigned char *) &IP_SOURCE[0], sizeof(ARP_target_IP_address));
+            netmemcpy((unsigned char *) &ARP_target_IP_address, &frame[38], sizeof(ARP_target_IP_address));
+            netmemcpy((unsigned char *) &ARP_local_IP_address, (unsigned char *) &IP_SOURCE[0], sizeof(ARP_target_IP_address));
 
-            debug_printf("ARP: %d, %x, %x, %x %x %x %x\n", ARP_operation, ARP_sender_IP_address, ARP_target_IP_address, IP_SOURCE[0], IP_SOURCE[1], IP_SOURCE[2], IP_SOURCE[3]);
+            debug_printf("ARP: %d, %x, %x, %x, %x %x %x %x\n", ARP_operation, ARP_sender_IP_address, ARP_target_IP_address, ARP_local_IP_address, IP_SOURCE[0], IP_SOURCE[1], IP_SOURCE[2], IP_SOURCE[3]);
 
-            if (ARP_operation == 0x0001/* && ARP_sender_IP_address == ARP_target_IP_address*/) {
+            if (ARP_operation == 0x0001 && ARP_local_IP_address == ARP_target_IP_address) {
+
                 debug_printf("ARP send\n");
                 int len = ARP_write(ARP_sender_MAC_address, ARP_sender_IP_address);
                 debug_printf("len: %d\n", len);
+
+                print_bytes(ARP_buf, len);
 
                 if (len > 0) {
                     mac_tx(c_tx, ARP_buf, len, SQUARE_PORT);
@@ -506,8 +538,6 @@ void latency_watcher(chanend c_rx, chanend c_tx, chanend ptp_link) {
     mac_set_custom_filter(c_rx, MAC_FILTER_IP);
     mac_set_custom_filter(c_rx, MAC_FILTER_ARP);
 
-    // TODO deal with ARP
-
     periodic_timer :> periodic_timeout;
     ptp_get_time_info(ptp_link, ptp_info);        // TODO need to call this periodically?   TODO can share this instance?
 
@@ -525,6 +555,8 @@ void latency_watcher(chanend c_rx, chanend c_tx, chanend ptp_link) {
 
 //             set_UDP_dest(&udp, ip, &mac_dest[0], remote_port);
              len = write_ethernet_frame_into_buf((unsigned char *) pmu_frame_buf, local_time.seconds[0], local_time.nanoseconds / 1000, 2);
+
+//             print_bytes(pmu_frame_buf, len);
 
              if (pmu_latency_record.state == IDLE) {
                  pmu_latency_record.next_report_index = 0;
