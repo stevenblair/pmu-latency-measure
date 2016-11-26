@@ -570,6 +570,48 @@ void latency_watcher(chanend c_rx, chanend c_tx, chanend ptp_link) {
 }
 
 
+#define SIZE_TIME_RECORDS   32
+
+void ptp_one_pps(chanend ptp_link, port test_clock_port, int period) {
+    int x = 0;
+    timer tmr;
+    unsigned int t, t2;
+    ptp_timestamp h[SIZE_TIME_RECORDS];
+    unsigned int h_index = 0;
+    ptp_timestamp ptp_ts;
+    ptp_time_info ptp_info;
+
+    while (1) {
+
+        ptp_get_time_info(ptp_link, ptp_info);
+
+        ptp_ts.seconds[0] += 1;
+        ptp_ts.nanoseconds = 0;
+
+        t = ptp_timestamp_to_local(ptp_ts, ptp_info);
+
+        tmr when timerafter(t) :> t2;
+
+        x = ~x;
+        test_clock_port <: x;
+
+        if (h_index >= SIZE_TIME_RECORDS) {
+            for (int i = 0; i < SIZE_TIME_RECORDS; i++) {
+                //            ptp_get_time_info(ptp_link, ptp_info);
+                debug_printf("%d: %d s  %d ns\n", i, h[i].seconds[0], h[i].nanoseconds);
+            }
+        }
+        else {
+            local_timestamp_to_ptp(ptp_ts, t2, ptp_info);
+            h[h_index].seconds[0] = ptp_ts.seconds[0];
+            h[h_index].nanoseconds = ptp_ts.nanoseconds;
+            h_index++;
+        }
+    }
+}
+
+
+
 int main() {
     chan c_mac_rx[2], c_mac_tx[2];
     chan c_ptp[1];
@@ -596,9 +638,9 @@ int main() {
                                   1,
                                   PTP_GRANDMASTER_CAPABLE);
 //                                  PTP_SLAVE_ONLY);
-    //    on tile[0]: ptp_output_test_clock(c_ptp[0], ptp_sync_port, 1000000000);
+        on tile[0]: ptp_one_pps(c_ptp[0], ptp_sync_port, 1000000000);
 
-        on tile[0]: latency_watcher(c_mac_rx[1], c_mac_tx[1], c_ptp[0]);
+//        on tile[0]: latency_watcher(c_mac_rx[1], c_mac_tx[1], c_ptp[0]);
     }
 
   return 0;
