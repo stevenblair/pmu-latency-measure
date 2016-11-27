@@ -630,12 +630,11 @@ void ptp_one_pps(chanend ptp_link, port test_clock_port, int period) {
 
 int main() {
     chan c_mac_rx[2], c_mac_tx[2];
-    chan c_ptp[1];
+    chan c_ptp[2];
 
     par {
         on tile[1]: {
             char mac_address[6];
-//            char mac_address2[6];
             otp_board_info_get_mac(otp_ports_tile_1, 0, mac_address);
             smi_init(smi1);
             eth_phy_config(1, smi1);
@@ -651,12 +650,12 @@ int main() {
         on tile[1]: ptp_server(c_mac_rx[0],
                                   c_mac_tx[0],
                                   c_ptp,
-                                  1,
-                                  PTP_GRANDMASTER_CAPABLE);
-//                                  PTP_SLAVE_ONLY);
+                                  2,
+//                                  PTP_GRANDMASTER_CAPABLE);
+                                  PTP_SLAVE_ONLY);
         on tile[0]: ptp_one_pps(c_ptp[0], ptp_sync_port, 1000000000);
 
-//        on tile[0]: latency_watcher(c_mac_rx[1], c_mac_tx[1], c_ptp[0]);
+        on tile[0]: latency_watcher(c_mac_rx[1], c_mac_tx[1], c_ptp[1]);
     }
 
   return 0;
