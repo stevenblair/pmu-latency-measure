@@ -570,7 +570,9 @@ void latency_watcher(chanend c_rx, chanend c_tx, chanend ptp_link) {
 }
 
 
+#define MEASURE_1PPS        1
 #define SIZE_TIME_RECORDS   32
+
 
 void ptp_one_pps(chanend ptp_link, port test_clock_port, int period) {
     int x = 0;
@@ -582,12 +584,10 @@ void ptp_one_pps(chanend ptp_link, port test_clock_port, int period) {
     ptp_time_info ptp_info;
 
     while (1) {
-
         ptp_get_time_info(ptp_link, ptp_info);
 
         ptp_ts.seconds[0] += 1;
         ptp_ts.nanoseconds = 0;
-
         t = ptp_timestamp_to_local(ptp_ts, ptp_info);
 
         tmr when timerafter(t) :> t2;
@@ -595,18 +595,34 @@ void ptp_one_pps(chanend ptp_link, port test_clock_port, int period) {
         x = ~x;
         test_clock_port <: x;
 
+#ifdef MEASURE_1PPS
         if (h_index >= SIZE_TIME_RECORDS) {
-            for (int i = 0; i < SIZE_TIME_RECORDS; i++) {
-                //            ptp_get_time_info(ptp_link, ptp_info);
-                debug_printf("%d: %d s  %d ns\n", i, h[i].seconds[0], h[i].nanoseconds);
+            unsigned int mean = 0;
+            int i = 0;
+
+            for (i = 0; i < SIZE_TIME_RECORDS; i++) {
+                mean += h[i].nanoseconds;
             }
+            mean = mean / SIZE_TIME_RECORDS;
+            debug_printf("mean: %d ns\n", mean);
+
+//            for (i = 0; i < SIZE_TIME_RECORDS; i++) {
+//                debug_printf("%d: %d s %d ns\n", i, h[i].seconds[0], h[i].nanoseconds);
+//            }
         }
         else {
             local_timestamp_to_ptp(ptp_ts, t2, ptp_info);
             h[h_index].seconds[0] = ptp_ts.seconds[0];
             h[h_index].nanoseconds = ptp_ts.nanoseconds;
-            h_index++;
+
+            debug_printf("%d s  %d ns\n", h[h_index].seconds[0], h[h_index].nanoseconds);
+
+            // avoid recording during initialisation
+            if (h[h_index].seconds[0] > 1480000000 && h[h_index].nanoseconds < 50000) {
+                h_index++;
+            }
         }
+#endif
     }
 }
 
