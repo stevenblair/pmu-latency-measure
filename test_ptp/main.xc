@@ -570,32 +570,66 @@ void latency_watcher(chanend c_rx, chanend c_tx, chanend ptp_link) {
 }
 
 
-#define MEASURE_1PPS        1
-#define SIZE_TIME_RECORDS   32
+//#define MEASURE_1PPS        1
+#ifdef MEASURE_1PPS
+#define SIZE_TIME_RECORDS   1024
+#endif
+#define IO_1PPS_ON      0
+#define IO_1PPS_OFF     1
 
-
-void ptp_one_pps(chanend ptp_link, port test_clock_port, int period) {
+void ptp_one_pps(chanend ptp_link, port test_clock_port, chanend mac_svr) {
     int x = 0;
     timer tmr;
-    unsigned int t, t2;
+    unsigned int t;//, t2;
+#ifdef MEASURE_1PPS
     ptp_timestamp h[SIZE_TIME_RECORDS];
     unsigned int h_index = 0;
+#endif
     ptp_timestamp ptp_ts;
     ptp_time_info ptp_info;
+    int tile_timer_offset = 0;
+
+    // TODO use inter-tile offset?
+    mac_get_tile_timer_offset(mac_svr, tile_timer_offset);
+    debug_printf("tile_timer_offset: %d ticks\n", tile_timer_offset);
 
     while (1) {
         ptp_get_time_info(ptp_link, ptp_info);
 
-        ptp_ts.seconds[0] += 1;
-        ptp_ts.nanoseconds = 0;
+        tmr :> t;
+        local_timestamp_to_ptp(ptp_ts, t, ptp_info);
+
+        if (x == IO_1PPS_ON) {
+            ptp_ts.seconds[0] += 1;
+            ptp_ts.nanoseconds = 0;
+            x = IO_1PPS_OFF;
+        }
+        else {
+            ptp_timestamp_offset(ptp_ts, 100000000);
+            x = IO_1PPS_ON;
+        }
+//        if (ptp_ts.nanoseconds > 999000000) {
+//            ptp_ts.seconds[0] += 1;
+//        }
+//        if (x == 0) {
+//            ptp_ts.nanoseconds = 999982000;
+//        }
+//        else {
+//            ptp_ts.nanoseconds = 999969000;
+//        }
+
         t = ptp_timestamp_to_local(ptp_ts, ptp_info);
 
-        tmr when timerafter(t) :> t2;
+        tmr when timerafter(t) :> void;
 
-        x = ~x;
+//        x = ~x & 1;
         test_clock_port <: x;
 
 #ifdef MEASURE_1PPS
+        local_timestamp_to_ptp(ptp_ts, t2, ptp_info);
+
+//        debug_printf("%d s %d ns\n", ptp_ts.seconds[0], ptp_ts.nanoseconds);
+
         if (h_index >= SIZE_TIME_RECORDS) {
             unsigned int mean = 0;
             int i = 0;
@@ -609,13 +643,11 @@ void ptp_one_pps(chanend ptp_link, port test_clock_port, int period) {
 //            for (i = 0; i < SIZE_TIME_RECORDS; i++) {
 //                debug_printf("%d: %d s %d ns\n", i, h[i].seconds[0], h[i].nanoseconds);
 //            }
+            h_index = 0;
         }
         else {
-            local_timestamp_to_ptp(ptp_ts, t2, ptp_info);
             h[h_index].seconds[0] = ptp_ts.seconds[0];
             h[h_index].nanoseconds = ptp_ts.nanoseconds;
-
-            debug_printf("%d s  %d ns\n", h[h_index].seconds[0], h[h_index].nanoseconds);
 
             // avoid recording during initialisation
             if (h[h_index].seconds[0] > 1480000000 && h[h_index].nanoseconds < 50000) {
@@ -627,10 +659,9 @@ void ptp_one_pps(chanend ptp_link, port test_clock_port, int period) {
 }
 
 
-
 int main() {
-    chan c_mac_rx[2], c_mac_tx[2];
-    chan c_ptp[2];
+    chan c_mac_rx[2], c_mac_tx[1];
+    chan c_ptp[1];
 
     par {
         on tile[1]: {
@@ -644,18 +675,19 @@ int main() {
                     null,
                     mac_address,
                     c_mac_rx, 2,
-                    c_mac_tx, 2);
+                    c_mac_tx, 1);
         }
 
         on tile[1]: ptp_server(c_mac_rx[0],
                                   c_mac_tx[0],
                                   c_ptp,
-                                  2,
-//                                  PTP_GRANDMASTER_CAPABLE);
-                                  PTP_SLAVE_ONLY);
-        on tile[0]: ptp_one_pps(c_ptp[0], ptp_sync_port, 1000000000);
+                                  1,
+                                  PTP_GRANDMASTER_CAPABLE);
+//                                  PTP_SLAVE_ONLY);
 
-        on tile[0]: latency_watcher(c_mac_rx[1], c_mac_tx[1], c_ptp[1]);
+        on tile[0]: ptp_one_pps(c_ptp[0], ptp_sync_port, c_mac_rx[1]);
+
+//        on tile[0]: latency_watcher(c_mac_rx[1], c_mac_tx[1], c_ptp[1]);
     }
 
   return 0;
