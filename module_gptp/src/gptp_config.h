@@ -7,7 +7,7 @@
 
 #define PTP_VERSION_NUMBER       (2)
 
-#define PTP_NUM_PORTS   (1)//(NUM_ETHERNET_MASTER_PORTS)
+#define PTP_NUM_PORTS   (2)//(NUM_ETHERNET_MASTER_PORTS)
 
 #define PTP_LOG_MIN_PDELAY_REQ_INTERVAL            (0)
 #define PTP_LOG_SYNC_INTERVAL                      (-3)
@@ -21,7 +21,7 @@
 #define PTP_TIMESCALE (1)
 #define PTP_TIME_TRACEABLE (0)
 #define PTP_FREQUENCY_TRACEABLE (0)
-#define PTP_CURRENT_UTC_OFFSET                     (33)
+#define PTP_CURRENT_UTC_OFFSET                     (36)
 #ifndef PTP_DEFAULT_GM_CAPABLE_PRIORITY1
 #define PTP_DEFAULT_GM_CAPABLE_PRIORITY1 (250)  // default for portable timeaware-system
 //#define PTP_DEFAULT_GM_CAPABLE_PRIORITY1 (100)  // default for portable timeaware-system

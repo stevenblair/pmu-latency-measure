@@ -577,10 +577,46 @@ void latency_watcher(chanend c_rx, chanend c_tx, chanend ptp_link) {
 #define IO_1PPS_ON      0
 #define IO_1PPS_OFF     1
 
+
+void update_ptp_time_info(chanend ptp_link, ptp_time_info *existing_ptp_info) {
+//    ptp_time_info new_ptp_info;
+//
+//    ptp_get_time_info(ptp_link, new_ptp_info);
+//
+//    int seconds_diff = new_ptp_info.ptp_ts.seconds[0] - existing_ptp_info->ptp_ts.seconds[0];
+//    unsigned long ticks_diff =  seconds_diff * 100000000 + (new_ptp_info.ptp_ts.nanoseconds - existing_ptp_info->ptp_ts.nanoseconds) / 10;
+//
+//    unsigned int local_ticks_diff = 0;
+////    (long long) new_ptp_info.local_ts - (long long) existing_ptp_info->local_ts;
+//    if (new_ptp_info.local_ts > existing_ptp_info->local_ts) {
+//        local_ticks_diff = new_ptp_info.local_ts - existing_ptp_info->local_ts;
+//    }
+//    else {
+//        local_ticks_diff = existing_ptp_info->local_ts - new_ptp_info.local_ts;
+//    }
+//    unsigned int ticks_error = ticks_diff - local_ticks_diff;
+//
+//    debug_printf("%u, %u, %u, %u\n", seconds_diff, ticks_diff, local_ticks_diff, ticks_error);//ptp_info.ptp_ts.seconds[0], ptp_info.ptp_ts.nanoseconds, ptp_info.local_ts);
+//
+//    if (ticks_error < 1000 || ticks_error > 100000) {
+////        memcpy(existing_ptp_info, &new_ptp_info, sizeof(ptp_time_info));
+//        existing_ptp_info->ptp_ts.seconds[0] = new_ptp_info.ptp_ts.seconds[0];
+//        existing_ptp_info->ptp_ts.nanoseconds = new_ptp_info.ptp_ts.nanoseconds;
+//        existing_ptp_info->local_ts = new_ptp_info.local_ts;
+//    }
+
+//    static int count = 0;
+
+//    if (count++ == 80) {
+//        count = 0;
+        ptp_get_time_info(ptp_link, *existing_ptp_info);
+//    }
+}
+
 void ptp_one_pps(chanend ptp_link, port test_clock_port, chanend mac_svr) {
     int x = 0;
     timer tmr;
-    unsigned int t;//, t2;
+    unsigned int t, t2;
 #ifdef MEASURE_1PPS
     ptp_timestamp h[SIZE_TIME_RECORDS];
     unsigned int h_index = 0;
@@ -589,41 +625,66 @@ void ptp_one_pps(chanend ptp_link, port test_clock_port, chanend mac_svr) {
     ptp_time_info ptp_info;
     int tile_timer_offset = 0;
 
-    // TODO use inter-tile offset?
+    // TODO need to use inter-tile offset? or already included in PTP code?
     mac_get_tile_timer_offset(mac_svr, tile_timer_offset);
     debug_printf("tile_timer_offset: %d ticks\n", tile_timer_offset);
 
+    ptp_get_time_info(ptp_link, ptp_info);
+
     while (1) {
-        ptp_get_time_info(ptp_link, ptp_info);
+        [[ordered]]
+        select {
+            case tmr when timerafter(t) :> t2:
+                test_clock_port <: x;
 
-        tmr :> t;
-        local_timestamp_to_ptp(ptp_ts, t, ptp_info);
+        //        tmr :> t2;
+    //            update_ptp_time_info(ptp_link, &ptp_info);
+        //        ptp_get_time_info(ptp_link, ptp_info);
+                local_timestamp_to_ptp(ptp_ts, t2, ptp_info);
 
-        if (x == IO_1PPS_ON) {
-            ptp_ts.seconds[0] += 1;
-            ptp_ts.nanoseconds = 0;
-            x = IO_1PPS_OFF;
+                if (x == IO_1PPS_ON) {
+                    ptp_ts.seconds[0] += 1;
+                    ptp_ts.nanoseconds = 0;
+                    x = IO_1PPS_OFF;
+                }
+                else {
+        //            ptp_timestamp_offset(ptp_ts, 100000000);
+                    ptp_ts.nanoseconds = 10000000;
+                    x = IO_1PPS_ON;
+
+                    ptp_request_time_info(ptp_link);
+                }
+        //        if (ptp_ts.nanoseconds > 999000000) {
+        //            ptp_ts.seconds[0] += 1;
+        //        }
+        //        if (x == 0) {
+        //            ptp_ts.nanoseconds = 999982000;
+        //        }
+        //        else {
+        //            ptp_ts.nanoseconds = 999969000;
+        //        }
+
+        //        ptp_get_time_info(ptp_link, ptp_info);
+    //            update_ptp_time_info(ptp_link, &ptp_info);
+                t = ptp_timestamp_to_local(ptp_ts, ptp_info);
+
+                if (x == IO_1PPS_OFF) {
+                    if (t - t2 < 98999000) {
+//                        t = t2 + 98999998;
+                        debug_printf("%u, %u, %u\n", t, t2, t - t2);
+                    }
+                }
+
+        //        x = ~x & 1;
+
+        //        if (x == IO_1PPS_OFF) {
+        //            debug_printf("%u, %u, %u, %u; %u\n", t, t2, ptp_info.ptp_ts.seconds[0], ptp_info.ptp_ts.nanoseconds, ptp_info.local_ts);
+        //        }
+
+                break;
+             case ptp_get_requested_time_info(ptp_link, ptp_info):
+                 break;
         }
-        else {
-            ptp_timestamp_offset(ptp_ts, 100000000);
-            x = IO_1PPS_ON;
-        }
-//        if (ptp_ts.nanoseconds > 999000000) {
-//            ptp_ts.seconds[0] += 1;
-//        }
-//        if (x == 0) {
-//            ptp_ts.nanoseconds = 999982000;
-//        }
-//        else {
-//            ptp_ts.nanoseconds = 999969000;
-//        }
-
-        t = ptp_timestamp_to_local(ptp_ts, ptp_info);
-
-        tmr when timerafter(t) :> void;
-
-//        x = ~x & 1;
-        test_clock_port <: x;
 
 #ifdef MEASURE_1PPS
         local_timestamp_to_ptp(ptp_ts, t2, ptp_info);
@@ -678,7 +739,7 @@ int main() {
                     c_mac_tx, 1);
         }
 
-        on tile[1]: ptp_server(c_mac_rx[0],
+        on tile[0]: ptp_server(c_mac_rx[0],
                                   c_mac_tx[0],
                                   c_ptp,
                                   1,
