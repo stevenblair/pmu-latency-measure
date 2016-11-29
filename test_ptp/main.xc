@@ -59,11 +59,11 @@ typedef struct udp_header {
 // TODO check if broadcast works with ARP in use
 
 uint8_t ETH_SOURCE[6] = { 0xa0, 0x56, 0x00, 0x97, 0x22, 0x00 }; // default; is overridden by local MAC address value at runtime
-//uint8_t ETH_DEST[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };  // set to PMU's MAC address, or leave as broadcast
-uint8_t ETH_DEST[6] = { 0x6d, 0x90, 0x4f, 0xc2, 0x50, 0x00 };  // set to PMU's MAC address, or leave as broadcast
+uint8_t ETH_DEST[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };  // set to PMU's MAC address, or leave as broadcast
+//uint8_t ETH_DEST[6] = { 0x6d, 0x90, 0x4f, 0xc2, 0x50, 0x00 };  // set to PMU's MAC address, or leave as broadcast
 
 uint8_t IP_SOURCE[4] = { 192, 168, 2, 129 }; // local IP address; set to approprate value for your network
-uint8_t IP_DEST[4] = { 192, 168, 2, 23 };  // set to PMU's IP address, or leave as broadcast
+uint8_t IP_DEST[4] = { 192, 168, 2, 255 };  // set to PMU's IP address, or leave as broadcast
 
 // a simple memcpy implementation, that reverses endian-ness
 void reversememcpy(unsigned char *dst, const unsigned char *src, unsigned int len) {
@@ -329,6 +329,7 @@ unsigned int pmu_report_len = 0;
 unsigned int pmu_report_rx_ts = 0;
 unsigned int pmu_report_port = 0;
 unsigned int LEAP_SECONDS = 36;
+unsigned int print_latency_count = 0;
 
 
 void update_reporting_latency_results() {
@@ -481,7 +482,10 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
             unsigned int FRACSEC = 0;
 
             netmemcpy((unsigned char *) &SOC, &frame[48], 4);
-            netmemcpy((unsigned char *) &FRACSEC, &frame[52], 4); // TODO deal with/remove time quality flags
+            netmemcpy((unsigned char *) &FRACSEC, &frame[52], 4);
+
+            FRACSEC = FRACSEC & 0x00FFFFFF; // ignore time quality flags
+
             //              debug_printf("SOC: %d, ", SOC);
             //              debug_printf("FRACSEC: %d\n", FRACSEC);
             pmu_latency_record.report_receive_time[pmu_latency_record.next_report_index] = pmu_report_rx_ts;
@@ -508,7 +512,11 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
             pmu_latency_record.diff_microseconds[pmu_latency_record.next_report_index] = diff_microseconds;
 
             //              debug_printf("diff: %d, %d\n", diff_s, diff_ns);
-            //              debug_printf("diff: %d\n", diff_microseconds);
+
+            if (diff_microseconds > 0 && print_latency_count <= 3500) {
+                debug_printf("%d\n", diff_microseconds);
+                print_latency_count++;
+            }
 
             xscope_int(REPORTING_LATENCY, diff_microseconds);
             xscope_int(MAX_REPORTING_LATENCY, pmu_latency_record.max_reporting_latency);
@@ -516,7 +524,7 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
             pmu_latency_record.next_report_index++;
             if (pmu_latency_record.next_report_index >= MAX_PMU_REPORTS) {
                 pmu_latency_record.next_report_index = 0;
-                update_reporting_latency_results();
+//                update_reporting_latency_results();
                 pmu_latency_record.state = IDLE;
             }
         }
@@ -540,7 +548,7 @@ void latency_watcher(chanend c_rx, chanend c_tx, chanend ptp_link) {
     mac_set_custom_filter(c_rx, 0xFFFFFFFF);
 
     periodic_timer :> periodic_timeout;
-    periodic_timeout += 1000000000;
+    periodic_timeout += 1500000000;     // wait for PTP task to sync
 
     ptp_get_time_info(ptp_link, ptp_info);        // TODO need to call this periodically?   TODO can share this instance?
 
@@ -550,7 +558,7 @@ void latency_watcher(chanend c_rx, chanend c_tx, chanend ptp_link) {
          case delay_recv_and_process_packet(c_rx, c_tx, ptp_link):
              break;
          case periodic_timer when timerafter(periodic_timeout) :> time:
-             periodic_timeout += 300000000;
+             periodic_timeout += 500000000;
 
              ptp_get_time_info(ptp_link, ptp_info);
              local_timestamp_to_ptp(local_time, time, ptp_info);
