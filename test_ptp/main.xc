@@ -437,7 +437,7 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
           // has a 802.1q tag - read etype from next word
           etype = (unsigned short) pmu_report_buf[4];
         }
-//        debug_printf("etype: %x\n", etype);
+//        debug_printf("etype (SQUARE_PORT): %x\n", etype);
 
         if (etype == 0x0608) {
             // ARP
@@ -453,15 +453,15 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
             netmemcpy((unsigned char *) &ARP_target_IP_address, &frame[38], sizeof(ARP_target_IP_address));
             netmemcpy((unsigned char *) &ARP_local_IP_address, (unsigned char *) &IP_SOURCE[0], sizeof(ARP_target_IP_address));
 
-            debug_printf("ARP: %d, %x, %x, %x, %x %x %x %x\n", ARP_operation, ARP_sender_IP_address, ARP_target_IP_address, ARP_local_IP_address, IP_SOURCE[0], IP_SOURCE[1], IP_SOURCE[2], IP_SOURCE[3]);
+//            debug_printf("ARP: %d, %x, %x, %x, %x %x %x %x\n", ARP_operation, ARP_sender_IP_address, ARP_target_IP_address, ARP_local_IP_address, IP_SOURCE[0], IP_SOURCE[1], IP_SOURCE[2], IP_SOURCE[3]);
 
             if (ARP_operation == 0x0001 && ARP_local_IP_address == ARP_target_IP_address) {
 
                 debug_printf("ARP send\n");
                 int len = ARP_write(ARP_sender_MAC_address, ARP_sender_IP_address);
-                debug_printf("len: %d\n", len);
+//                debug_printf("len: %d\n", len);
 
-                print_bytes(ARP_buf, len);
+//                print_bytes(ARP_buf, len);
 
                 if (len > 0) {
                     mac_tx(c_tx, ARP_buf, len, SQUARE_PORT);
@@ -535,10 +535,13 @@ void latency_watcher(chanend c_rx, chanend c_tx, chanend ptp_link) {
     otp_board_info_get_mac(otp_ports_tile_0, 0, mac_address);
     init_existing_UDP(&udp, NULL, mac_address);
 
-    mac_set_custom_filter(c_rx, MAC_FILTER_IP);
-    mac_set_custom_filter(c_rx, MAC_FILTER_ARP);
+//    mac_set_custom_filter(c_rx, MAC_FILTER_IP);
+//    mac_set_custom_filter(c_rx, MAC_FILTER_ARP);
+    mac_set_custom_filter(c_rx, 0xFFFFFFFF);
 
     periodic_timer :> periodic_timeout;
+    periodic_timeout += 1000000000;
+
     ptp_get_time_info(ptp_link, ptp_info);        // TODO need to call this periodically?   TODO can share this instance?
 
     while (1) {
@@ -547,20 +550,29 @@ void latency_watcher(chanend c_rx, chanend c_tx, chanend ptp_link) {
          case delay_recv_and_process_packet(c_rx, c_tx, ptp_link):
              break;
          case periodic_timer when timerafter(periodic_timeout) :> time:
-             periodic_timeout += 100000000;
+             periodic_timeout += 300000000;
 
              ptp_get_time_info(ptp_link, ptp_info);
              local_timestamp_to_ptp(local_time, time, ptp_info);
-//             debug_printf("time: %d.%d\n", local_time.seconds[0], local_time.nanoseconds);
 
 //             set_UDP_dest(&udp, ip, &mac_dest[0], remote_port);
-             len = write_ethernet_frame_into_buf((unsigned char *) pmu_frame_buf, local_time.seconds[0], local_time.nanoseconds / 1000, 2);
 
 //             print_bytes(pmu_frame_buf, len);
 
              if (pmu_latency_record.state == IDLE) {
+                 debug_printf("time: %d.%d\n", local_time.seconds[0], local_time.nanoseconds);
+
+                 len = write_ethernet_frame_into_buf((unsigned char *) pmu_frame_buf, local_time.seconds[0], local_time.nanoseconds / 1000, 5);
                  pmu_latency_record.next_report_index = 0;
-                 mac_tx_timed(c_tx, pmu_frame_buf, len, pmu_latency_record.start_transmission_sent_time, SQUARE_PORT);
+                 if (len > 0) {
+                     mac_tx_timed(c_tx, pmu_frame_buf, len, pmu_latency_record.start_transmission_sent_time, SQUARE_PORT);
+                 }
+
+                 len = write_ethernet_frame_into_buf((unsigned char *) pmu_frame_buf, local_time.seconds[0], local_time.nanoseconds / 1000, 2);
+                 pmu_latency_record.next_report_index = 0;
+                 if (len > 0) {
+                     mac_tx_timed(c_tx, pmu_frame_buf, len, pmu_latency_record.start_transmission_sent_time, SQUARE_PORT);
+                 }
              }
              break;
          default:
@@ -622,14 +634,14 @@ void ptp_one_pps(chanend ptp_link, port test_clock_port, chanend mac_svr) {
     unsigned int h_index = 0;
 #endif
     ptp_timestamp ptp_ts;
-    ptp_time_info ptp_info;
-    int tile_timer_offset = 0;
+    ptp_time_info ptp_info_1pps;
+//    int tile_timer_offset = 0;
 
     // TODO need to use inter-tile offset? or already included in PTP code?
-    mac_get_tile_timer_offset(mac_svr, tile_timer_offset);
-    debug_printf("tile_timer_offset: %d ticks\n", tile_timer_offset);
+//    mac_get_tile_timer_offset(mac_svr, tile_timer_offset);
+//    debug_printf("tile_timer_offset: %d ticks\n", tile_timer_offset);
 
-    ptp_get_time_info(ptp_link, ptp_info);
+    ptp_get_time_info(ptp_link, ptp_info_1pps);
 
     while (1) {
         [[ordered]]
@@ -638,9 +650,9 @@ void ptp_one_pps(chanend ptp_link, port test_clock_port, chanend mac_svr) {
                 test_clock_port <: x;
 
         //        tmr :> t2;
-    //            update_ptp_time_info(ptp_link, &ptp_info);
-        //        ptp_get_time_info(ptp_link, ptp_info);
-                local_timestamp_to_ptp(ptp_ts, t2, ptp_info);
+    //            update_ptp_time_info(ptp_link, &ptp_info_1pps);
+        //        ptp_get_time_info(ptp_link, ptp_info_1pps);
+                local_timestamp_to_ptp(ptp_ts, t2, ptp_info_1pps);
 
                 if (x == IO_1PPS_ON) {
                     ptp_ts.seconds[0] += 1;
@@ -664,16 +676,19 @@ void ptp_one_pps(chanend ptp_link, port test_clock_port, chanend mac_svr) {
         //            ptp_ts.nanoseconds = 999969000;
         //        }
 
-        //        ptp_get_time_info(ptp_link, ptp_info);
-    //            update_ptp_time_info(ptp_link, &ptp_info);
-                t = ptp_timestamp_to_local(ptp_ts, ptp_info);
+        //        ptp_get_time_info(ptp_link, ptp_info_1pps);
+    //            update_ptp_time_info(ptp_link, &ptp_info_1pps);
+                t = ptp_timestamp_to_local(ptp_ts, ptp_info_1pps);
+//                if (x == IO_1PPS_OFF) {
+//                    t = t - 38;
+//                }
 
-                if (x == IO_1PPS_OFF) {
-                    if (t - t2 < 98999000) {
-//                        t = t2 + 98999998;
-                        debug_printf("%u, %u, %u\n", t, t2, t - t2);
-                    }
-                }
+//                if (x == IO_1PPS_OFF) {
+//                    if (t - t2 < 98999000) {
+////                        t = t2 + 98999998;
+//                        debug_printf("%u, %u, %u\n", t, t2, t - t2);
+//                    }
+//                }
 
         //        x = ~x & 1;
 
@@ -682,12 +697,12 @@ void ptp_one_pps(chanend ptp_link, port test_clock_port, chanend mac_svr) {
         //        }
 
                 break;
-             case ptp_get_requested_time_info(ptp_link, ptp_info):
+             case ptp_get_requested_time_info(ptp_link, ptp_info_1pps):
                  break;
         }
 
 #ifdef MEASURE_1PPS
-        local_timestamp_to_ptp(ptp_ts, t2, ptp_info);
+        local_timestamp_to_ptp(ptp_ts, t2, ptp_info_1pps);
 
 //        debug_printf("%d s %d ns\n", ptp_ts.seconds[0], ptp_ts.nanoseconds);
 
@@ -721,8 +736,8 @@ void ptp_one_pps(chanend ptp_link, port test_clock_port, chanend mac_svr) {
 
 
 int main() {
-    chan c_mac_rx[2], c_mac_tx[1];
-    chan c_ptp[1];
+    chan c_mac_rx[3], c_mac_tx[2];
+    chan c_ptp[2];
 
     par {
         on tile[1]: {
@@ -735,20 +750,20 @@ int main() {
                     smi1,
                     null,
                     mac_address,
-                    c_mac_rx, 2,
-                    c_mac_tx, 1);
+                    c_mac_rx, 3,
+                    c_mac_tx, 2);
         }
 
         on tile[0]: ptp_server(c_mac_rx[0],
                                   c_mac_tx[0],
                                   c_ptp,
-                                  1,
-                                  PTP_GRANDMASTER_CAPABLE);
-//                                  PTP_SLAVE_ONLY);
+                                  2,
+//                                  PTP_GRANDMASTER_CAPABLE);
+                                  PTP_SLAVE_ONLY);
 
-        on tile[0]: ptp_one_pps(c_ptp[0], ptp_sync_port, c_mac_rx[1]);
+        on tile[0]: latency_watcher(c_mac_rx[1], c_mac_tx[1], c_ptp[0]);
 
-//        on tile[0]: latency_watcher(c_mac_rx[1], c_mac_tx[1], c_ptp[1]);
+        on tile[0]: ptp_one_pps(c_ptp[1], ptp_sync_port, c_mac_rx[2]);
     }
 
   return 0;

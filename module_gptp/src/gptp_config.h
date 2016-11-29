@@ -7,7 +7,7 @@
 
 #define PTP_VERSION_NUMBER       (2)
 
-#define PTP_NUM_PORTS   (2)//(NUM_ETHERNET_MASTER_PORTS)
+#define PTP_NUM_PORTS   (1)//(NUM_ETHERNET_MASTER_PORTS)
 
 #define PTP_LOG_MIN_PDELAY_REQ_INTERVAL            (0)
 #define PTP_LOG_SYNC_INTERVAL                      (-3)
@@ -33,6 +33,30 @@
 #define PTP_CLOCK_ACCURACY (0xFE)   // Unknown
 #define PTP_OFFSET_SCALED_LOG_VARIANCE (1)
 #define PTP_TIMESOURCE (0xA0) // internal oscillator
+
+
+
+
+//#define PTP_LEAP61 (0)
+//#define PTP_CURRENT_UTC_OFFSET_VALID (1)
+//#define PTP_TIMESCALE (1)
+//#define PTP_CURRENT_UTC_OFFSET                     (36)
+//#define PTP_DEFAULT_NON_GM_CAPABLE_PRIORITY1 (255)
+//#ifndef PTP_DEFAULT_GM_CAPABLE_PRIORITY1
+//#define PTP_DEFAULT_GM_CAPABLE_PRIORITY1 (128)  // default for portable timeaware-system
+////#define PTP_DEFAULT_GM_CAPABLE_PRIORITY1 (100)  // default for portable timeaware-system
+//#endif
+//#define PTP_LEAP59 (0)
+//#define PTP_TIME_TRACEABLE (1)
+//#define PTP_FREQUENCY_TRACEABLE (1)
+//#define PTP_DEFAULT_PRIORITY2 (128)
+//#define PTP_CLOCK_CLASS (6) //
+//#define PTP_CLOCK_ACCURACY (0x21)   // within 100 ns
+//#define PTP_OFFSET_SCALED_LOG_VARIANCE (0xFFFF)
+//#define PTP_TIMESOURCE (0x20) // GPS
+
+
+
 
 #define PTP_ANNOUNCE_TLV_TYPE (0x8)
 #define PTP_MAXIMUM_PATH_TRACE_TLV (8)
@@ -77,6 +101,6 @@
 #define PTP_SYNC_LOCK_ACCEPTABLE_VARIATION 0x100000
 #define PTP_SYNC_LOCK_STABILITY_COUNT 5
 
-#define PTP_THROW_AWAY_SYNC_OUTLIERS 1
+#define PTP_THROW_AWAY_SYNC_OUTLIERS 0
 
 #endif // __gptp_config_h__

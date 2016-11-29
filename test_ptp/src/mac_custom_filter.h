@@ -51,6 +51,7 @@ inline int mac_custom_filter(unsigned int buf[], unsigned int mac[2])
         // has a 802.1q tag - read etype from next word
         etype = (unsigned short) buf[4];
       }
+//      debug_printf("etype: %x\n", etype);
 
       switch (etype) {
           case 0xf788:
@@ -60,7 +61,6 @@ inline int mac_custom_filter(unsigned int buf[], unsigned int mac[2])
             result |= MAC_FILTER_IP;
             break;
           case 0x0608:
-//              debug_printf("etype: %x\n", etype);
             result |= MAC_FILTER_ARP;
             break;
         default:
