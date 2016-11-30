@@ -300,7 +300,7 @@ on tile[1]: mii_interface_t mii2 = {
 #define SQUARE_PORT                     1
 #define MAX_ARP_MESG_LENGTH             128
 #define MAX_PMU_REPORT_MESG_LENGTH      128
-#define MAX_PMU_REPORTS                 5000
+#define MAX_PMU_REPORTS                 7000
 
 enum PMU_Latency_Test_State {
     IDLE = 0,
@@ -314,8 +314,8 @@ typedef struct _PMU_latency_record {
 //    unsigned int report_receive_time[MAX_PMU_REPORTS];
 //    ptp_timestamp report_receive_time_ptp[MAX_PMU_REPORTS];
 //    unsigned int report_timestamp[MAX_PMU_REPORTS];
-    unsigned int diff_microseconds[MAX_PMU_REPORTS];
-    unsigned int FRACSEC[MAX_PMU_REPORTS];
+//    unsigned int diff_microseconds[MAX_PMU_REPORTS];
+//    unsigned int FRACSEC[MAX_PMU_REPORTS];
     unsigned int next_report_index;
     unsigned int num_reports;
     unsigned int max_reporting_latency;
@@ -340,10 +340,10 @@ void update_reporting_latency_results() {
     unsigned long long accumulator = 0;
 
     for (i = 0; i < MAX_PMU_REPORTS; i++) {
-        accumulator += pmu_latency_record.diff_microseconds[i];
-        if (pmu_latency_record.diff_microseconds[i] > pmu_latency_record.max_reporting_latency) {
-            pmu_latency_record.max_reporting_latency = pmu_latency_record.diff_microseconds[i];
-        }
+//        accumulator += pmu_latency_record.diff_microseconds[i];
+//        if (pmu_latency_record.diff_microseconds[i] > pmu_latency_record.max_reporting_latency) {
+//            pmu_latency_record.max_reporting_latency = pmu_latency_record.diff_microseconds[i];
+//        }
     }
 
     debug_printf("max_reporting_latency: %d microseconds, mean: %d microseconds\n", pmu_latency_record.max_reporting_latency, accumulator / MAX_PMU_REPORTS);
@@ -497,7 +497,7 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
             //            local_timestamp_to_ptp(pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index], pmu_latency_record.report_receive_time[pmu_latency_record.next_report_index], ptp_info);
             local_timestamp_to_ptp(report_receive_time_ptp, pmu_report_rx_ts, ptp_info);
 
-            debug_printf("ts: %d s, %d ns (%d, %d)\n", report_receive_time_ptp.seconds[0] - LEAP_SECONDS, report_receive_time_ptp.nanoseconds, ptp_info.ptp_adjust, ptp_info.inv_ptp_adjust);
+//            debug_printf("ts: %d s, %d ns (%d, %d)\n", report_receive_time_ptp.seconds[0] - LEAP_SECONDS, report_receive_time_ptp.nanoseconds, ptp_info.ptp_adjust, ptp_info.inv_ptp_adjust);
 
             //              debug_printf("ts: %d, s[0]: %d, s[1]: %d, ns: %d\n",
             //                      pmu_latency_record.report_receive_time[pmu_latency_record.next_report_index],
@@ -516,13 +516,13 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
                 diff_microseconds = (1000000000 + diff_ns) / 1000;
             }
 
-            pmu_latency_record.diff_microseconds[pmu_latency_record.next_report_index] = diff_microseconds;
-            pmu_latency_record.FRACSEC[pmu_latency_record.next_report_index] = FRACSEC;
+//            pmu_latency_record.diff_microseconds[pmu_latency_record.next_report_index] = diff_microseconds;
+//            pmu_latency_record.FRACSEC[pmu_latency_record.next_report_index] = FRACSEC;
 
             //              debug_printf("diff: %d, %d\n", diff_s, diff_ns);
 
             if (diff_microseconds > 0 && print_latency_count <= MAX_PMU_REPORTS) {
-                debug_printf("%d,%d\n", diff_microseconds, FRACSEC);
+                debug_printf("%d\n", diff_microseconds);
                 print_latency_count++;
             }
 
@@ -532,8 +532,8 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
             pmu_latency_record.next_report_index++;
             if (pmu_latency_record.next_report_index >= MAX_PMU_REPORTS) {
                 pmu_latency_record.next_report_index = 0;
-                print_latency_count = 0;
-                update_reporting_latency_results();
+//                print_latency_count = 0;
+//                update_reporting_latency_results();
                 pmu_latency_record.state = IDLE;
             }
 
@@ -549,10 +549,11 @@ void latency_watcher(chanend c_rx, chanend c_tx, chanend ptp_link) {
     unsigned int time = 0;
     unsigned int len = 0;
     ptp_timestamp local_time;
+    unsigned int start = 0;
 
-    // TODO need to use inter-tile offset? or already included in PTP code?
+    // get inter-tile timer offset for comparing Ethernet
     mac_get_tile_timer_offset(c_rx, tile_timer_offset);
-    debug_printf("latency_watcher() tile_timer_offset: %d ticks\n", tile_timer_offset);
+//    debug_printf("latency_watcher() tile_timer_offset: %d ticks\n", tile_timer_offset);
 
     char mac_address[6];
     otp_board_info_get_mac(otp_ports_tile_0, 0, mac_address);
@@ -563,7 +564,7 @@ void latency_watcher(chanend c_rx, chanend c_tx, chanend ptp_link) {
     mac_set_custom_filter(c_rx, 0xFFFFFFFF);
 
     periodic_timer :> periodic_timeout;
-    periodic_timeout += 1500000000;     // wait for PTP task to sync
+    periodic_timeout += 1000000000;     // wait for PTP task to sync
 
     ptp_get_time_info(ptp_link, ptp_info);        // TODO need to call this periodically?   TODO can share this instance?
 
@@ -573,6 +574,12 @@ void latency_watcher(chanend c_rx, chanend c_tx, chanend ptp_link) {
          case delay_recv_and_process_packet(c_rx, c_tx, ptp_link):
              break;
          case periodic_timer when timerafter(periodic_timeout) :> time:
+             if (start < 4) {
+                 debug_printf("timeout\n");
+                 periodic_timeout += 1000000000;
+                 start++;
+                 break;
+             }
              periodic_timeout += 500000000;
 
              ptp_get_time_info(ptp_link, ptp_info);
