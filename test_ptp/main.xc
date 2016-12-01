@@ -299,8 +299,9 @@ on tile[1]: mii_interface_t mii2 = {
 #define CIRCLE_PORT                     0
 #define SQUARE_PORT                     1
 #define MAX_ARP_MESG_LENGTH             128
-#define MAX_PMU_REPORT_MESG_LENGTH      128
+#define MAX_PMU_REPORT_MESG_LENGTH      900
 #define MAX_PMU_REPORTS                 7000
+#define SV_LATENCY                      1
 
 enum PMU_Latency_Test_State {
     IDLE = 0,
@@ -321,6 +322,7 @@ typedef struct _PMU_latency_record {
     unsigned int max_reporting_latency;
 } PMU_Latency_Record;
 
+ptp_timestamp report_receive_time_ptp;
 ptp_timestamp ptp_ts;
 ptp_time_info ptp_info;
 PMU_Latency_Record pmu_latency_record = {0};
@@ -444,100 +446,180 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
         }
 //        debug_printf("etype (SQUARE_PORT): %x\n", etype);
 
-        if (etype == 0x0608) {
-            // ARP
-            unsigned short ARP_operation = 0;
-            unsigned char ARP_sender_MAC_address[6];
-            unsigned int ARP_sender_IP_address = 0;
-            unsigned int ARP_target_IP_address = 0;
-            unsigned int ARP_local_IP_address = 0;
+        switch (etype) {
 
-            netmemcpy((unsigned char *) &ARP_operation, &frame[20], sizeof(ARP_operation));
-            netmemcpy((unsigned char *) &ARP_sender_MAC_address, &frame[22], sizeof(ARP_sender_MAC_address));
-            netmemcpy((unsigned char *) &ARP_sender_IP_address, &frame[28], sizeof(ARP_sender_IP_address));
-            netmemcpy((unsigned char *) &ARP_target_IP_address, &frame[38], sizeof(ARP_target_IP_address));
-            netmemcpy((unsigned char *) &ARP_local_IP_address, (unsigned char *) &IP_SOURCE[0], sizeof(ARP_target_IP_address));
+#ifdef SV_LATENCY
+        case 0xba88:
+    //            debug_printf("SV etype (SQUARE_PORT): %x\n", etype);
+                unsigned short SV_sample1_smpCnt = 0;
+                unsigned short SV_sample1_SOC_h = 0;
+                unsigned short SV_sample1_SOC_l = 0;
+                unsigned int SOC = 0;
 
-//            debug_printf("ARP: %d, %x, %x, %x, %x %x %x %x\n", ARP_operation, ARP_sender_IP_address, ARP_target_IP_address, ARP_local_IP_address, IP_SOURCE[0], IP_SOURCE[1], IP_SOURCE[2], IP_SOURCE[3]);
+                // extract first sample data
+                netmemcpy((unsigned char *) &SV_sample1_smpCnt, &frame[53], sizeof(SV_sample1_smpCnt));
+                netmemcpy((unsigned char *) &SV_sample1_SOC_l, &frame[72], 2);
+                netmemcpy((unsigned char *) &SV_sample1_SOC_h, &frame[72 + 8], 2);
+                SOC = ((unsigned int) SV_sample1_SOC_l) + (((unsigned int) SV_sample1_SOC_h) << 16);
 
-            if (ARP_operation == 0x0001 && ARP_local_IP_address == ARP_target_IP_address) {
+    //            if (SV_sample1_smpCnt == 0 || SV_sample1_smpCnt == 12792) {
+    ////                debug_printf("SV_sample1_SOC_l: %x, SV_sample1_SOC_h: %x, SOC: %x\n", SV_sample1_SOC_l, SV_sample1_SOC_h, SV_sample1_SOC);
+    //                debug_printf("SV SOC: %d, smpCnt: %d\n", SV_sample1_SOC, SV_sample1_smpCnt);
+    //            }
 
-                debug_printf("ARP send\n");
-                int len = ARP_write(ARP_sender_MAC_address, ARP_sender_IP_address);
-//                debug_printf("len: %d\n", len);
+                unsigned int FRACSEC = ((10000 * SV_sample1_smpCnt) / 128) - 50;    // convert to integer us; adjust RTDS rack 2 delay
+    //            debug_printf("SV SOC: %d, FRACSEC: %d\n", SOC, FRACSEC);
 
-//                print_bytes(ARP_buf, len);
+    //            debug_printf("PTP SOC: %d, FRACSEC: %d\n", ptp_info.ptp_ts.seconds[0], ptp_info.ptp_ts.nanoseconds);
 
-                if (len > 0) {
-                    mac_tx(c_tx, ARP_buf, len, SQUARE_PORT);
+
+                if (SV_sample1_smpCnt == 0) {
+                    ptp_get_time_info(ptp_link, ptp_info);
                 }
+
+                if (ptp_info.ptp_ts.seconds[0] < 10000000) {
+                    return;
+                }
+
+                local_timestamp_to_ptp(report_receive_time_ptp, pmu_report_rx_ts, ptp_info);
+
+                int diff_microseconds = 0;
+                int diff_s = (report_receive_time_ptp.seconds[0] - LEAP_SECONDS) - SOC;
+                int diff_ns = report_receive_time_ptp.nanoseconds - (FRACSEC * 1000) - (tile_timer_offset * 10);
+
+                if (diff_s == 0) {
+                    diff_microseconds = diff_ns / 1000;
+                }
+                else if (diff_s == 1) {
+                    diff_microseconds = (1000000000 + diff_ns) / 1000;
+                }
+
+    //            pmu_latency_record.diff_microseconds[pmu_latency_record.next_report_index] = diff_microseconds;
+    //            pmu_latency_record.FRACSEC[pmu_latency_record.next_report_index] = FRACSEC;
+
+    //            debug_printf("diff: %d, %d\n", diff_s, diff_ns);
+    //            debug_printf("%d\n", diff_microseconds);
+
+                if (diff_microseconds > 0 && print_latency_count <= MAX_PMU_REPORTS) {
+                    debug_printf("%d\n", diff_microseconds);
+                    print_latency_count++;
+                }
+
+                xscope_int(REPORTING_LATENCY, diff_microseconds);
+                xscope_int(MAX_REPORTING_LATENCY, pmu_latency_record.max_reporting_latency);
+
+                pmu_latency_record.next_report_index++;
+                if (pmu_latency_record.next_report_index >= MAX_PMU_REPORTS) {
+                    pmu_latency_record.next_report_index = 0;
+    //                print_latency_count = 0;
+    //                update_reporting_latency_results();
+                    pmu_latency_record.state = IDLE;
+                }
+
+                ptp_get_time_info(ptp_link, ptp_info);
+                break;
+#endif
+        case 0x0608:
+                // ARP
+                unsigned short ARP_operation = 0;
+                unsigned char ARP_sender_MAC_address[6];
+                unsigned int ARP_sender_IP_address = 0;
+                unsigned int ARP_target_IP_address = 0;
+                unsigned int ARP_local_IP_address = 0;
+
+                netmemcpy((unsigned char *) &ARP_operation, &frame[20], sizeof(ARP_operation));
+                netmemcpy((unsigned char *) &ARP_sender_MAC_address, &frame[22], sizeof(ARP_sender_MAC_address));
+                netmemcpy((unsigned char *) &ARP_sender_IP_address, &frame[28], sizeof(ARP_sender_IP_address));
+                netmemcpy((unsigned char *) &ARP_target_IP_address, &frame[38], sizeof(ARP_target_IP_address));
+                netmemcpy((unsigned char *) &ARP_local_IP_address, (unsigned char *) &IP_SOURCE[0], sizeof(ARP_target_IP_address));
+
+    //            debug_printf("ARP: %d, %x, %x, %x, %x %x %x %x\n", ARP_operation, ARP_sender_IP_address, ARP_target_IP_address, ARP_local_IP_address, IP_SOURCE[0], IP_SOURCE[1], IP_SOURCE[2], IP_SOURCE[3]);
+
+                if (ARP_operation == 0x0001 && ARP_local_IP_address == ARP_target_IP_address) {
+
+                    debug_printf("ARP send\n");
+                    int len = ARP_write(ARP_sender_MAC_address, ARP_sender_IP_address);
+    //                debug_printf("len: %d\n", len);
+
+    //                print_bytes(ARP_buf, len);
+
+                    if (len > 0) {
+                        mac_tx(c_tx, ARP_buf, len, SQUARE_PORT);
+                    }
+                }
+                break;
+
+#ifndef SV_LATENCY
+        case 0x0008:
+                // TODO check ethertype for VLAN
+                if (frame[42] != 0xaa || frame[43] != 0x01) {
+                    // not Synchrophasor
+                    return;
+                }
+
+                pmu_latency_record.state = SENT_START_TRANSMISSION;
+
+                unsigned int SOC = 0;
+                unsigned int FRACSEC = 0;
+    //            ptp_timestamp report_receive_time_ptp;
+
+                netmemcpy((unsigned char *) &SOC, &frame[48], 4);
+                netmemcpy((unsigned char *) &FRACSEC, &frame[52], 4);
+
+                FRACSEC = FRACSEC & 0x00FFFFFF; // ignore time quality flags
+
+                //              debug_printf("SOC: %d, ", SOC);
+                //              debug_printf("FRACSEC: %d\n", FRACSEC);
+    //            pmu_latency_record.report_receive_time[pmu_latency_record.next_report_index] = pmu_report_rx_ts;
+                //            local_timestamp_to_ptp(pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index], pmu_latency_record.report_receive_time[pmu_latency_record.next_report_index], ptp_info);
+                local_timestamp_to_ptp(report_receive_time_ptp, pmu_report_rx_ts, ptp_info);
+
+    //            debug_printf("ts: %d s, %d ns (%d, %d)\n", report_receive_time_ptp.seconds[0] - LEAP_SECONDS, report_receive_time_ptp.nanoseconds, ptp_info.ptp_adjust, ptp_info.inv_ptp_adjust);
+
+                //              debug_printf("ts: %d, s[0]: %d, s[1]: %d, ns: %d\n",
+                //                      pmu_latency_record.report_receive_time[pmu_latency_record.next_report_index],
+                //                      pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index].seconds[0] - LEAP_SECONDS,
+                //                      pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index].seconds[1],
+                //                      pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index].nanoseconds);
+
+                int diff_microseconds = 0;
+                int diff_s = (report_receive_time_ptp.seconds[0] - LEAP_SECONDS) - SOC;
+                int diff_ns = report_receive_time_ptp.nanoseconds - (FRACSEC * 1000) - (tile_timer_offset * 10);
+
+                if (diff_s == 0) {
+                    diff_microseconds = diff_ns / 1000;
+                }
+                else if (diff_s == 1) {
+                    diff_microseconds = (1000000000 + diff_ns) / 1000;
+                }
+
+    //            pmu_latency_record.diff_microseconds[pmu_latency_record.next_report_index] = diff_microseconds;
+    //            pmu_latency_record.FRACSEC[pmu_latency_record.next_report_index] = FRACSEC;
+
+                //              debug_printf("diff: %d, %d\n", diff_s, diff_ns);
+
+                if (diff_microseconds > 0 && print_latency_count <= MAX_PMU_REPORTS) {
+                    debug_printf("%d\n", diff_microseconds);
+                    print_latency_count++;
+                }
+
+                xscope_int(REPORTING_LATENCY, diff_microseconds);
+                xscope_int(MAX_REPORTING_LATENCY, pmu_latency_record.max_reporting_latency);
+
+                pmu_latency_record.next_report_index++;
+                if (pmu_latency_record.next_report_index >= MAX_PMU_REPORTS) {
+                    pmu_latency_record.next_report_index = 0;
+    //                print_latency_count = 0;
+    //                update_reporting_latency_results();
+                    pmu_latency_record.state = IDLE;
+                }
+
+                ptp_get_time_info(ptp_link, ptp_info);
             }
-        }
-        else {
-            // TODO check ethertype for VLAN
-            if (frame[42] != 0xaa || frame[43] != 0x01) {
-                // not Synchrophasor
-                return;
-            }
-
-            pmu_latency_record.state = SENT_START_TRANSMISSION;
-
-            unsigned int SOC = 0;
-            unsigned int FRACSEC = 0;
-            ptp_timestamp report_receive_time_ptp;
-
-            netmemcpy((unsigned char *) &SOC, &frame[48], 4);
-            netmemcpy((unsigned char *) &FRACSEC, &frame[52], 4);
-
-            FRACSEC = FRACSEC & 0x00FFFFFF; // ignore time quality flags
-
-            //              debug_printf("SOC: %d, ", SOC);
-            //              debug_printf("FRACSEC: %d\n", FRACSEC);
-//            pmu_latency_record.report_receive_time[pmu_latency_record.next_report_index] = pmu_report_rx_ts;
-            //            local_timestamp_to_ptp(pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index], pmu_latency_record.report_receive_time[pmu_latency_record.next_report_index], ptp_info);
-            local_timestamp_to_ptp(report_receive_time_ptp, pmu_report_rx_ts, ptp_info);
-
-//            debug_printf("ts: %d s, %d ns (%d, %d)\n", report_receive_time_ptp.seconds[0] - LEAP_SECONDS, report_receive_time_ptp.nanoseconds, ptp_info.ptp_adjust, ptp_info.inv_ptp_adjust);
-
-            //              debug_printf("ts: %d, s[0]: %d, s[1]: %d, ns: %d\n",
-            //                      pmu_latency_record.report_receive_time[pmu_latency_record.next_report_index],
-            //                      pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index].seconds[0] - LEAP_SECONDS,
-            //                      pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index].seconds[1],
-            //                      pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index].nanoseconds);
-
-            int diff_microseconds = 0;
-            int diff_s = (report_receive_time_ptp.seconds[0] - LEAP_SECONDS) - SOC;
-            int diff_ns = report_receive_time_ptp.nanoseconds - (FRACSEC * 1000) - (tile_timer_offset * 10);
-
-            if (diff_s == 0) {
-                diff_microseconds = diff_ns / 1000;
-            }
-            else if (diff_s == 1) {
-                diff_microseconds = (1000000000 + diff_ns) / 1000;
-            }
-
-//            pmu_latency_record.diff_microseconds[pmu_latency_record.next_report_index] = diff_microseconds;
-//            pmu_latency_record.FRACSEC[pmu_latency_record.next_report_index] = FRACSEC;
-
-            //              debug_printf("diff: %d, %d\n", diff_s, diff_ns);
-
-            if (diff_microseconds > 0 && print_latency_count <= MAX_PMU_REPORTS) {
-                debug_printf("%d\n", diff_microseconds);
-                print_latency_count++;
-            }
-
-            xscope_int(REPORTING_LATENCY, diff_microseconds);
-            xscope_int(MAX_REPORTING_LATENCY, pmu_latency_record.max_reporting_latency);
-
-            pmu_latency_record.next_report_index++;
-            if (pmu_latency_record.next_report_index >= MAX_PMU_REPORTS) {
-                pmu_latency_record.next_report_index = 0;
-//                print_latency_count = 0;
-//                update_reporting_latency_results();
-                pmu_latency_record.state = IDLE;
-            }
-
-            ptp_get_time_info(ptp_link, ptp_info);
+            break;
+#endif
+        default:
+            break;
         }
     }
 }
@@ -573,38 +655,38 @@ void latency_watcher(chanend c_rx, chanend c_tx, chanend ptp_link) {
          select {
          case delay_recv_and_process_packet(c_rx, c_tx, ptp_link):
              break;
-         case periodic_timer when timerafter(periodic_timeout) :> time:
-             if (start < 4) {
-                 debug_printf("timeout\n");
-                 periodic_timeout += 1000000000;
-                 start++;
-                 break;
-             }
-             periodic_timeout += 500000000;
-
-             ptp_get_time_info(ptp_link, ptp_info);
-             local_timestamp_to_ptp(local_time, time, ptp_info);
-
-//             set_UDP_dest(&udp, ip, &mac_dest[0], remote_port);
-
-//             print_bytes(pmu_frame_buf, len);
-
-             if (pmu_latency_record.state == IDLE) {
-                 debug_printf("time: %d.%d\n", local_time.seconds[0], local_time.nanoseconds);
-
-                 len = write_ethernet_frame_into_buf((unsigned char *) pmu_frame_buf, local_time.seconds[0], local_time.nanoseconds / 1000, 5);
-                 pmu_latency_record.next_report_index = 0;
-                 if (len > 0) {
-                     mac_tx_timed(c_tx, pmu_frame_buf, len, pmu_latency_record.start_transmission_sent_time, SQUARE_PORT);
-                 }
-
-                 len = write_ethernet_frame_into_buf((unsigned char *) pmu_frame_buf, local_time.seconds[0], local_time.nanoseconds / 1000, 2);
-                 pmu_latency_record.next_report_index = 0;
-                 if (len > 0) {
-                     mac_tx_timed(c_tx, pmu_frame_buf, len, pmu_latency_record.start_transmission_sent_time, SQUARE_PORT);
-                 }
-             }
-             break;
+//         case periodic_timer when timerafter(periodic_timeout) :> time:
+//             if (start < 4) {
+//                 debug_printf("timeout\n");
+//                 periodic_timeout += 1000000000;
+//                 start++;
+//                 break;
+//             }
+//             periodic_timeout += 500000000;
+//
+//             ptp_get_time_info(ptp_link, ptp_info);
+//             local_timestamp_to_ptp(local_time, time, ptp_info);
+//
+////             set_UDP_dest(&udp, ip, &mac_dest[0], remote_port);
+//
+////             print_bytes(pmu_frame_buf, len);
+//
+//             if (pmu_latency_record.state == IDLE) {
+//                 debug_printf("time: %d.%d\n", local_time.seconds[0], local_time.nanoseconds);
+//
+//                 len = write_ethernet_frame_into_buf((unsigned char *) pmu_frame_buf, local_time.seconds[0], local_time.nanoseconds / 1000, 5);
+//                 pmu_latency_record.next_report_index = 0;
+//                 if (len > 0) {
+//                     mac_tx_timed(c_tx, pmu_frame_buf, len, pmu_latency_record.start_transmission_sent_time, SQUARE_PORT);
+//                 }
+//
+//                 len = write_ethernet_frame_into_buf((unsigned char *) pmu_frame_buf, local_time.seconds[0], local_time.nanoseconds / 1000, 2);
+//                 pmu_latency_record.next_report_index = 0;
+//                 if (len > 0) {
+//                     mac_tx_timed(c_tx, pmu_frame_buf, len, pmu_latency_record.start_transmission_sent_time, SQUARE_PORT);
+//                 }
+//             }
+//             break;
          default:
              break;
         }
@@ -655,7 +737,7 @@ void update_ptp_time_info(chanend ptp_link, ptp_time_info *existing_ptp_info) {
 //    }
 }
 
-void ptp_one_pps(chanend ptp_link, port test_clock_port, chanend mac_svr) {
+void ptp_one_pps(chanend ptp_link, port test_clock_port) {
     int x = 0;
     timer tmr;
     unsigned int t, t2;
@@ -665,11 +747,6 @@ void ptp_one_pps(chanend ptp_link, port test_clock_port, chanend mac_svr) {
 #endif
     ptp_timestamp ptp_ts;
     ptp_time_info ptp_info_1pps;
-//    int tile_timer_offset = 0;
-//
-//    // TODO need to use inter-tile offset? or already included in PTP code?
-//    mac_get_tile_timer_offset(mac_svr, tile_timer_offset);
-//    debug_printf("tile_timer_offset: %d ticks\n", tile_timer_offset);
 
     ptp_get_time_info(ptp_link, ptp_info_1pps);
 
@@ -679,9 +756,6 @@ void ptp_one_pps(chanend ptp_link, port test_clock_port, chanend mac_svr) {
             case tmr when timerafter(t) :> t2:
                 test_clock_port <: x;
 
-        //        tmr :> t2;
-    //            update_ptp_time_info(ptp_link, &ptp_info_1pps);
-        //        ptp_get_time_info(ptp_link, ptp_info_1pps);
                 local_timestamp_to_ptp(ptp_ts, t2, ptp_info_1pps);
 
                 if (x == IO_1PPS_ON) {
@@ -690,21 +764,11 @@ void ptp_one_pps(chanend ptp_link, port test_clock_port, chanend mac_svr) {
                     x = IO_1PPS_OFF;
                 }
                 else {
-        //            ptp_timestamp_offset(ptp_ts, 100000000);
                     ptp_ts.nanoseconds = 10000000;
                     x = IO_1PPS_ON;
 
                     ptp_request_time_info(ptp_link);
                 }
-        //        if (ptp_ts.nanoseconds > 999000000) {
-        //            ptp_ts.seconds[0] += 1;
-        //        }
-        //        if (x == 0) {
-        //            ptp_ts.nanoseconds = 999982000;
-        //        }
-        //        else {
-        //            ptp_ts.nanoseconds = 999969000;
-        //        }
 
         //        ptp_get_time_info(ptp_link, ptp_info_1pps);
     //            update_ptp_time_info(ptp_link, &ptp_info_1pps);
@@ -712,15 +776,6 @@ void ptp_one_pps(chanend ptp_link, port test_clock_port, chanend mac_svr) {
 //                if (x == IO_1PPS_OFF) {
 //                    t = t - 38;
 //                }
-
-//                if (x == IO_1PPS_OFF) {
-//                    if (t - t2 < 98999000) {
-////                        t = t2 + 98999998;
-//                        debug_printf("%u, %u, %u\n", t, t2, t - t2);
-//                    }
-//                }
-
-        //        x = ~x & 1;
 
         //        if (x == IO_1PPS_OFF) {
         //            debug_printf("%u, %u, %u, %u; %u\n", t, t2, ptp_info.ptp_ts.seconds[0], ptp_info.ptp_ts.nanoseconds, ptp_info.local_ts);
@@ -766,7 +821,7 @@ void ptp_one_pps(chanend ptp_link, port test_clock_port, chanend mac_svr) {
 
 
 int main() {
-    chan c_mac_rx[3], c_mac_tx[2];
+    chan c_mac_rx[2], c_mac_tx[2];
     chan c_ptp[2];
 
     par {
@@ -780,7 +835,7 @@ int main() {
                     smi1,
                     null,
                     mac_address,
-                    c_mac_rx, 3,
+                    c_mac_rx, 2,
                     c_mac_tx, 2);
         }
 
@@ -788,12 +843,11 @@ int main() {
                                   c_mac_tx[0],
                                   c_ptp,
                                   2,
-//                                  PTP_GRANDMASTER_CAPABLE);
                                   PTP_SLAVE_ONLY);
 
         on tile[0]: latency_watcher(c_mac_rx[1], c_mac_tx[1], c_ptp[0]);
 
-        on tile[0]: ptp_one_pps(c_ptp[1], ptp_sync_port, c_mac_rx[2]);  // TODO can remove c_mac_rx
+        on tile[0]: ptp_one_pps(c_ptp[1], ptp_sync_port);
     }
 
   return 0;

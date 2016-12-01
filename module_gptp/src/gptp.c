@@ -736,6 +736,8 @@ static void send_ptp_announce_msg(chanend c_tx, int port_num)
   pComMesgHdr->versionPTP = PTP_VERSION_NUMBER;
   pComMesgHdr->messageLength = hton16(sizeof(ComMessageHdr) +
                                      sizeof(AnnounceMessage));
+//  pComMesgHdr->messageLength = hton16(76);    // TODO validate message length
+
   pComMesgHdr->flagField[1] =
    ((PTP_LEAP61 & 0x1)) |
    ((PTP_LEAP59 & 0x1) << 1) |
