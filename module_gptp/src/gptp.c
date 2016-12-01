@@ -268,8 +268,8 @@ static void set_new_role(enum ptp_port_role_t new_role,
     g_ptp_adjust = 0;
     g_inv_ptp_adjust = 0;
 
-    ptp_reference_local_ts =
-      ptp_reference_local_ts;
+//    ptp_reference_local_ts =
+//      ptp_reference_local_ts;
 
     ptp_gmoffset = 0;
     last_sync_time[port_num] = last_announce_time[port_num] = t;
