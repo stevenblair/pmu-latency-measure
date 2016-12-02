@@ -9,7 +9,7 @@
 #include <mii_wrappers.h>
 #include <mii_filter.h>
 
-#if (NUM_ETHERNET_PORTS == 1)
+//#if (NUM_ETHERNET_PORTS == 1)
 
 void phy_init(smi_interface_t &smi0,
               mii_interface_full_t &mii0)
@@ -37,10 +37,10 @@ void ethernet_server_full(mii_interface_full_t &m,
     mii_tx_pins(m.p_mii_txd, 0);
     ethernet_tx_server(mac_address, tx, 1, num_tx, smi, null);
     ethernet_rx_server(rx, num_rx);
-    ethernet_filter(mac_address, c);
+    ethernet_filter_single_port(mac_address, c);
   }
 }
-#endif
+//#endif
 
 #if (NUM_ETHERNET_MASTER_PORTS == 2)
 void ethernet_server_full_two_port(mii_interface_full_t &mii1,

@@ -15,6 +15,7 @@
 
 #ifdef __XC__
 void ethernet_filter(const char mac[], streaming chanend c[NUM_ETHERNET_PORTS]);
+void ethernet_filter_single_port(const char mac[], streaming chanend c[1]);
 #endif
 
 #if ETHERNET_COUNT_PACKETS

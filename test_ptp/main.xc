@@ -265,26 +265,65 @@ uint16_t write_ethernet_frame_into_buf(unsigned char *buf, uint32_t SOC_recv, ui
 
 
 on tile[0]: otp_ports_t otp_ports_tile_0 = OTP_PORTS_INITIALIZER;
+on tile[0]: otp_ports_t otp_ports_tile_0_2 = OTP_PORTS_INITIALIZER;
 on tile[1]: otp_ports_t otp_ports_tile_1 = OTP_PORTS_INITIALIZER;
 on tile[0]: port ptp_sync_port = XS1_PORT_4A;    // PTP sync port
 
 smi_interface_t smi1 = ETHERNET_DEFAULT_SMI_INIT;
+smi_interface_t smi_triangle = {0, XS1_PORT_1M, XS1_PORT_1N};
 
 // Circle slot
 mii_interface_t mii1 = ETHERNET_DEFAULT_MII_INIT;
 
 // Square slot
 on tile[1]: mii_interface_t mii2 = {
-  XS1_CLKBLK_3,
-  XS1_CLKBLK_4,
-  XS1_PORT_1B,
-  XS1_PORT_4D,
-  XS1_PORT_4A,
-  XS1_PORT_1C,
-  XS1_PORT_1G,
-  XS1_PORT_1F,
-  XS1_PORT_4B
+  XS1_CLKBLK_3, //
+  XS1_CLKBLK_4, //
+  XS1_PORT_1B,  //RX_CLK
+  XS1_PORT_4D,  //INT_N
+  XS1_PORT_4A,  //RXD
+  XS1_PORT_1C,  //RX_DV
+  XS1_PORT_1G,  //TX_CLK
+  XS1_PORT_1F,  //TX_EN
+  XS1_PORT_4B   //TXD
 };
+
+// Triangle slot
+on tile[0]: mii_interface_t mii_triangle2 = {
+  XS1_CLKBLK_1, //
+  XS1_CLKBLK_2, //
+  XS1_PORT_1J,  //RX_CLK
+  XS1_PORT_1P,  //INT_N
+  XS1_PORT_4E,  //RXD
+  XS1_PORT_1K,  //RX_DV
+  XS1_PORT_1I,  //TX_CLK
+  XS1_PORT_1L,  //TX_EN
+  XS1_PORT_4F   //TXD
+};
+
+//#define PORT_ETH_RXCLK on tile[1]: XS1_PORT_1B
+//#define PORT_ETH_ERR on tile[1]: XS1_PORT_4D
+//#define PORT_ETH_RXD on tile[1]: XS1_PORT_4A
+//#define PORT_ETH_RXDV on tile[1]: XS1_PORT_1C
+//#define PORT_ETH_TXCLK on tile[1]: XS1_PORT_1G
+//#define PORT_ETH_TXEN on tile[1]: XS1_PORT_1F
+//#define PORT_ETH_TXD on tile[1]: XS1_PORT_4B
+//
+//#define PORT_ETH_MDIOC on tile[1]: XS1_PORT_4C
+//#define PORT_ETH_MDIOFAKE on tile[1]: XS1_PORT_8A
+
+
+//#define PORT_ETH_RXCLK on tile[0]: XS1_PORT_1J
+//#define PORT_ETH_ERR on tile[0]: XS1_PORT_1P
+//#define PORT_ETH_RXD on tile[0]: XS1_PORT_4E
+//#define PORT_ETH_RXDV on tile[0]: XS1_PORT_1K
+//#define PORT_ETH_TXCLK on tile[0]: XS1_PORT_1I
+//#define PORT_ETH_TXEN on tile[0]: XS1_PORT_1L
+//#define PORT_ETH_TXD on tile[0]: XS1_PORT_4F
+
+//#define PORT_ETH_MDIO on tile[0]: XS1_PORT_1M
+//#define PORT_ETH_MDC on tile[0]: XS1_PORT_1N
+//#define PORT_ETH_INT on tile[0]: XS1_PORT_1O
 
 
 #define SV_LATENCY                      0
@@ -744,6 +783,7 @@ void ptp_one_pps(chanend ptp_link, port test_clock_port) {
 
 int main() {
     chan c_mac_rx[2], c_mac_tx[2];
+    chan c_mac_rx2[1], c_mac_tx2[1];
     chan c_ptp[2];
 
     par {
@@ -754,11 +794,24 @@ int main() {
             eth_phy_config(1, smi1);
             ethernet_server_full_two_port(mii1,
                     mii2,
+
                     smi1,
                     null,
                     mac_address,
                     c_mac_rx, 2,
                     c_mac_tx, 2);
+        }
+
+        on tile[0]: {
+            char mac_address_tile_0[6];
+            otp_board_info_get_mac(otp_ports_tile_0_2, 0, mac_address_tile_0);
+            smi_init(smi_triangle);
+            eth_phy_config(1, smi_triangle);
+            ethernet_server_full(mii_triangle2,
+                    smi_triangle,
+                    mac_address_tile_0,
+                    c_mac_rx2, 1,
+                    c_mac_tx2, 1);
         }
 
         on tile[0]: ptp_server(c_mac_rx[0],
