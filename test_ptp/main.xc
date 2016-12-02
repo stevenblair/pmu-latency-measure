@@ -265,12 +265,12 @@ uint16_t write_ethernet_frame_into_buf(unsigned char *buf, uint32_t SOC_recv, ui
 
 
 on tile[0]: otp_ports_t otp_ports_tile_0 = OTP_PORTS_INITIALIZER;
-on tile[0]: otp_ports_t otp_ports_tile_0_2 = OTP_PORTS_INITIALIZER;
+//on tile[0]: otp_ports_t otp_ports_tile_0_2 = OTP_PORTS_INITIALIZER;
 on tile[1]: otp_ports_t otp_ports_tile_1 = OTP_PORTS_INITIALIZER;
 on tile[0]: port ptp_sync_port = XS1_PORT_4A;    // PTP sync port
 
 smi_interface_t smi1 = ETHERNET_DEFAULT_SMI_INIT;
-smi_interface_t smi_triangle = {0, XS1_PORT_1M, XS1_PORT_1N};
+on tile[0]: smi_interface_t smi_triangle = {0, XS1_PORT_1M, XS1_PORT_1N};
 
 // Circle slot
 mii_interface_t mii1 = ETHERNET_DEFAULT_MII_INIT;
@@ -804,7 +804,7 @@ int main() {
 
         on tile[0]: {
             char mac_address_tile_0[6];
-            otp_board_info_get_mac(otp_ports_tile_0_2, 0, mac_address_tile_0);
+//            otp_board_info_get_mac(otp_ports_tile_0_2, 0, mac_address_tile_0);
             smi_init(smi_triangle);
             eth_phy_config(1, smi_triangle);
             ethernet_server_full(mii_triangle2,
