@@ -59,6 +59,7 @@ typedef struct udp_header {
 // TODO check if broadcast works with ARP in use
 
 uint8_t ETH_SOURCE[6] = { 0xa0, 0x56, 0x00, 0x97, 0x22, 0x00 }; // default; is overridden by local MAC address value at runtime
+uint8_t ETH_SOURCE2[6] = { 0xa0, 0x56, 0x00, 0x97, 0x22, 0x00 }; // default; is overridden by local MAC address value at runtime
 uint8_t ETH_DEST[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };  // set to PMU's MAC address, or leave as broadcast
 //uint8_t ETH_DEST[6] = { 0x6d, 0x90, 0x4f, 0xc2, 0x50, 0x00 };  // set to PMU's MAC address, or leave as broadcast
 
@@ -325,12 +326,20 @@ on tile[0]: mii_interface_t mii_triangle2 = {
 //#define PORT_ETH_MDC on tile[0]: XS1_PORT_1N
 //#define PORT_ETH_INT on tile[0]: XS1_PORT_1O
 
-
+#define USE_TRIANGLE_PORT               1
 #define SV_LATENCY                      0
 #define SEND_PMU_GET_CONFIG_COMMAND     1
 #define PMU_REQUIRES_ARP                1
 #define CIRCLE_PORT                     0
 #define SQUARE_PORT                     1
+#define TRIANGLE_PORT                   0
+
+#if USE_TRIANGLE_PORT == 1
+#define PMU_PORT                        TRIANGLE_PORT
+#else
+#define PMU_PORT                        SQUARE_PORT
+#endif
+
 #define MAX_ARP_MESG_LENGTH             128
 #define MAX_PMU_REPORTS                 7000
 #if SV_LATENCY == 1
@@ -471,9 +480,9 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
 
     xscope_int(INTERFACE_NUM, pmu_report_port);
 
-//    debug_printf("frame on port: %d\n", pmu_report_port);
+    debug_printf("frame on port: %d\n", pmu_report_port);
 
-    if (pmu_report_port == SQUARE_PORT) {
+    if (pmu_report_port == PMU_PORT) {
         unsigned char *frame = (unsigned char *) pmu_report_buf;
         unsigned short etype = (unsigned short) pmu_report_buf[3];
         int qhdr = (etype == 0x0081);
@@ -481,13 +490,13 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
           // has a 802.1q tag - read etype from next word
           etype = (unsigned short) pmu_report_buf[4];
         }
-//        debug_printf("etype (SQUARE_PORT): %x\n", etype);
+//        debug_printf("etype (PMU_PORT): %x\n", etype);
 
         switch (etype) {
 
 #if SV_LATENCY == 1
         case 0xba88:
-//            debug_printf("SV etype (SQUARE_PORT): %x\n", etype);
+//            debug_printf("SV etype (PMU_PORT): %x\n", etype);
             unsigned short SV_sample1_smpCnt = 0;
             unsigned short SV_sample1_SOC_h = 0;
             unsigned short SV_sample1_SOC_l = 0;
@@ -582,7 +591,7 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
     //                print_bytes(ARP_buf, len);
 
                     if (len > 0) {
-//                        mac_tx(c_tx, ARP_buf, len, SQUARE_PORT);
+//                        mac_tx(c_tx, ARP_buf, len, PMU_PORT);
                     }
                 }
                 break;
@@ -676,9 +685,11 @@ void latency_watcher(chanend c_rx, chanend c_tx, chanend ptp_link) {
     mac_get_tile_timer_offset(c_rx, tile_timer_offset);
 //    debug_printf("latency_watcher() tile_timer_offset: %d ticks\n", tile_timer_offset);
 
-    char mac_address[6];
-    otp_board_info_get_mac(otp_ports_tile_0, 0, mac_address);
-    init_existing_UDP(&udp, NULL, mac_address);
+//    char mac_address_tile_0[6];
+    //    init_existing_UDP(&udp, NULL, mac_address_tile_0);
+//    uint8_t ETH_SOURCE3[6] = { 0xa0, 0x56, 0x00, 0x97, 0x22, 0x00 };
+    uint8_t ETH_SOURCE3[6] = { 0x00, 0x22, 0x97, 0x00, 0x56, 0xa0 };
+    init_existing_UDP(&udp, NULL, ETH_SOURCE3);
 
 //    mac_set_custom_filter(c_rx, MAC_FILTER_IP);
 //    mac_set_custom_filter(c_rx, MAC_FILTER_ARP);
@@ -716,14 +727,14 @@ void latency_watcher(chanend c_rx, chanend c_tx, chanend ptp_link) {
                  len = write_ethernet_frame_into_buf((unsigned char *) pmu_frame_buf, local_time.seconds[0], local_time.nanoseconds / 1000, 5);
                  pmu_latency_record.next_report_index = 0;
                  if (len > 0) {
-                     mac_tx_timed(c_tx, pmu_frame_buf, len, pmu_latency_record.start_transmission_sent_time, SQUARE_PORT);
+                     mac_tx_timed(c_tx, pmu_frame_buf, len, pmu_latency_record.start_transmission_sent_time, PMU_PORT);
                  }
 #endif
 
                  len = write_ethernet_frame_into_buf((unsigned char *) pmu_frame_buf, local_time.seconds[0], local_time.nanoseconds / 1000, 2);
                  pmu_latency_record.next_report_index = 0;
                  if (len > 0) {
-                     mac_tx_timed(c_tx, pmu_frame_buf, len, pmu_latency_record.start_transmission_sent_time, SQUARE_PORT);
+                     mac_tx_timed(c_tx, pmu_frame_buf, len, pmu_latency_record.start_transmission_sent_time, PMU_PORT);
                  }
              }
              break;
@@ -794,7 +805,6 @@ int main() {
             eth_phy_config(1, smi1);
             ethernet_server_full_two_port(mii1,
                     mii2,
-
                     smi1,
                     null,
                     mac_address,
@@ -803,13 +813,14 @@ int main() {
         }
 
         on tile[0]: {
-            char mac_address_tile_0[6];
+//            char mac_address_tile_0[6] = {0xa0, 0x56, 0x00, 0x97, 0x22, 0x00};
+//            otp_board_info_get_mac(otp_ports_tile_0, 0, mac_address_tile_0);
 //            otp_board_info_get_mac(otp_ports_tile_0_2, 0, mac_address_tile_0);
             smi_init(smi_triangle);
             eth_phy_config(1, smi_triangle);
             ethernet_server_full(mii_triangle2,
                     smi_triangle,
-                    mac_address_tile_0,
+                    ETH_SOURCE2,
                     c_mac_rx2, 1,
                     c_mac_tx2, 1);
         }
@@ -820,7 +831,7 @@ int main() {
                                   2,
                                   PTP_SLAVE_ONLY);
 
-        on tile[0]: latency_watcher(c_mac_rx[1], c_mac_tx[1], c_ptp[0]);
+        on tile[0]: latency_watcher(c_mac_rx2[0], c_mac_tx2[0], c_ptp[0]);
 
         on tile[0]: ptp_one_pps(c_ptp[1], ptp_sync_port);
     }

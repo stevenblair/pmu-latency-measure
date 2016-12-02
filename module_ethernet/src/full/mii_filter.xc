@@ -192,7 +192,7 @@ void ethernet_filter_single_port(const char mac_address[], streaming chanend c[1
         select
         {
 #pragma xta endpoint "rx_packet"
-            case (int ifnum=0; ifnum<NUM_ETHERNET_PORTS; ifnum++) c[ifnum] :> buf :
+            case (int ifnum=0; ifnum<1; ifnum++) c[ifnum] :> buf :
             {
                 if (buf)
                 {
