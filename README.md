@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/83973661.svg)](https://zenodo.org/badge/latestdoi/83973661)
+
 # Real-time measurement of Phasor Measurement Unit (PMU) reporting latency
 
 This software enables PMU reporting latency to be measured accurately and conveniently, whilst requiring only relatively inexpensive hardware.
