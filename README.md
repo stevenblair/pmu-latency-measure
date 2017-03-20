@@ -24,4 +24,4 @@ This software enables PMU reporting latency to be measured accurately and conven
 
 The software supports multiple configurations, depending on the availablity of a PTP clock, etc. A typical configuration is shown below, where the circle Ethernet port is connected to the PTP master clock, and the square Ethernet port is connected to the PMU under test.
 
-https://raw.githubusercontent.com/stevenblair/pmu-latency-measure/master/xCORE-hardware-config.jpg
+![alt tag](https://raw.githubusercontent.com/stevenblair/pmu-latency-measure/master/xCORE-hardware-config.jpg)
