@@ -19,3 +19,9 @@ This software enables PMU reporting latency to be measured accurately and conven
 4. Open `main.xc` and modify the various PMU parameters to match your PMU device and testing arrangement.
 5. Build the project e.g. by right clicking on it in the Prject Explorer, and selecting "Build Project".
 6. Ensure your xCORE hardware is connected by USB, then create a new Run Configuration using the `xCORE Application` type. You may wish to enable `Real-Time Mode` in the XScope tab. You should now be able to run the software.
+
+## Hardware configuration
+
+The software supports multiple configurations, depending on the availablity of a PTP clock, etc. A typical configuration is shown below, where the circle Ethernet port is connected to the PTP master clock, and the square Ethernet port is connected to the PMU under test.
+
+https://raw.githubusercontent.com/stevenblair/pmu-latency-measure/master/xCORE-hardware-config.jpg
