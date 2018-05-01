@@ -63,8 +63,8 @@ uint8_t ETH_SOURCE2[6] = { 0xa0, 0x56, 0x00, 0x97, 0x22, 0x00 }; // default; is 
 uint8_t ETH_DEST[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };  // set to PMU's MAC address, or leave as broadcast
 //uint8_t ETH_DEST[6] = { 0x6d, 0x90, 0x4f, 0xc2, 0x50, 0x00 };  // set to PMU's MAC address, or leave as broadcast
 
-uint8_t IP_SOURCE[4] = { 192, 168, 2, 129 }; // local IP address; set to approprate value for the network
-uint8_t IP_DEST[4] = { 192, 168, 2, 255 };  // set to PMU's IP address, or leave as broadcast
+uint8_t IP_SOURCE[4] = { 192, 168, 2, 19 }; // local IP address; set to approprate value for the network
+uint8_t IP_DEST[4] = { 192, 168, 2, 111 };  // set to PMU's IP address, or leave as broadcast
 
 // a simple memcpy implementation, that reverses endian-ness
 void reversememcpy(unsigned char *dst, const unsigned char *src, unsigned int len) {
@@ -378,7 +378,7 @@ unsigned int pmu_report_buf[MAX_PMU_REPORT_MESG_LENGTH / 4];
 unsigned int pmu_report_len = 0;
 unsigned int pmu_report_rx_ts = 0;
 unsigned int pmu_report_port = 0;
-unsigned int LEAP_SECONDS = 36;
+unsigned int LEAP_SECONDS = 37;
 unsigned int print_latency_count = 0;
 int tile_timer_offset = 0;
 
@@ -480,7 +480,7 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
 
     xscope_int(INTERFACE_NUM, pmu_report_port);
 
-    debug_printf("frame on port: %d\n", pmu_report_port);
+//    debug_printf("frame on port: %d\n", pmu_report_port);
 
     if (pmu_report_port == PMU_PORT) {
         unsigned char *frame = (unsigned char *) pmu_report_buf;
@@ -605,6 +605,8 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
                     return;
                 }
 
+//                debug_printf("PMU packet\n");
+
                 pmu_latency_record.state = SENT_START_TRANSMISSION;
 
                 unsigned int SOC = 0;
@@ -616,8 +618,8 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
 
                 FRACSEC = FRACSEC & 0x00FFFFFF; // ignore time quality flags
 
-                //              debug_printf("SOC: %d, ", SOC);
-                //              debug_printf("FRACSEC: %d\n", FRACSEC);
+//                              debug_printf("SOC: %d, ", SOC);
+//                              debug_printf("FRACSEC: %d\n", FRACSEC);
     //            pmu_latency_record.report_receive_time[pmu_latency_record.next_report_index] = pmu_report_rx_ts;
                 //            local_timestamp_to_ptp(pmu_latency_record.report_receive_time_ptp[pmu_latency_record.next_report_index], pmu_latency_record.report_receive_time[pmu_latency_record.next_report_index], ptp_info);
                 local_timestamp_to_ptp(report_receive_time_ptp, pmu_report_rx_ts, ptp_info);
@@ -644,7 +646,7 @@ void delay_recv_and_process_packet(chanend c_rx, chanend c_tx, chanend ptp_link)
     //            pmu_latency_record.diff_microseconds[pmu_latency_record.next_report_index] = diff_microseconds;
     //            pmu_latency_record.FRACSEC[pmu_latency_record.next_report_index] = FRACSEC;
 
-                //              debug_printf("diff: %d, %d\n", diff_s, diff_ns);
+                debug_printf("diff: %d, %d\n", diff_s, diff_ns);
 
                 if (diff_microseconds > 0 && print_latency_count <= MAX_PMU_REPORTS) {
                     debug_printf("%d\n", diff_microseconds);
